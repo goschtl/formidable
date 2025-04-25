@@ -12,6 +12,8 @@ dependencies = [
     "pdbpp>=0.10.3",
     "pydantic>=2.11.1",
     "wired>=0.4",
+    "autoroutes",
+    "beartype",
 ]
 
 [build-system]
