@@ -30,19 +30,29 @@ class BoolFieldRenderer(IFieldRenderer):
 
 
 OPTIONAL = TypeHint(None)
+BASIC_WIDGETS = {
+    TypeHint(str): StringFieldRenderer,
+    TypeHint(int): IntFieldRenderer,
+    TypeHint(bool): BoolFieldRenderer,
+}
+
 
 
 # --- Form Renderer using wired injection ---
 class FormRenderer:
 
-    def __init__(self):
-        self.widgets = {
-            TypeHint(str): StringFieldRenderer,
-            TypeHint(int): IntFieldRenderer,
-            TypeHint(bool): BoolFieldRenderer,
-        }
+    widgets: dict[TypeHint, IFieldRenderer] = {**BASIC_WIDGETS}
+    custom_widgets: dict[str, IFieldRenderer] | None = None
 
-    def resolve(annotation):
+    def __init__(self,
+                 widgets: dict[TypeHint, IFieldRenderer] | None = None,
+                 custom_widgets: dict[str, IFieldRenderer] | None = None):
+        if widgets:
+            self.widgets.update(widgets)
+        if custom_widgets:
+            self.custom_widgets = custom_widgets
+
+    def resolve(self, annotation):
         hint = TypeHint(annotation)
         if isinstance(hint, UnionTypeHint):
             first = next(x for x in hint if x is not OPTIONAL)
@@ -50,17 +60,21 @@ class FormRenderer:
             return first, optional
         return hint, False
 
-    def render(self, model_cls: type[BaseModel]):
+    def __call__(self, model_cls: type[BaseModel]):
         f = form(method="post")
 
         for name, model_field in model_cls.model_fields.items():
             annotation = model_field.annotation
             field_info = model_field
             field_title = field_info.title or name
-
             token, optional = self.resolve(annotation)
-            widget = self.widgets.get(token)
-            if widget:
+
+            if self.custom_widgets and name in self.custom_widgets:
+                widget = self.custom_widgets.get(name)
+            else:
+                widget = self.widgets.get(token)
+
+            if widget is not None:
                 renderer: IFieldRenderer = widget(optional)
                 f.add(renderer.render(name, field_info, annotation))
             else:

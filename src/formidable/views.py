@@ -79,9 +79,13 @@ class Form:
     def get_schema(self, request) -> BaseModel:
         raise NotImplementedError()
 
+    def get_renderer(self, request):
+        return FormRenderer()
+
     def get_form(self, request):
         schema = self.get_schema(request)
-        html_form = FormRenderer().render(schema)
+        renderer = self.get_renderer(request)
+        html_form = renderer(schema)
         for name, trigger in self.buttons.items():
             html_form.add(button(
                 trigger.title,
