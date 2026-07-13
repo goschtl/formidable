@@ -59,6 +59,18 @@ def test_normalize_empty_optional_is_dropped():
     assert "nickname" not in data
 
 
+def test_normalize_empty_required_fails_as_missing():
+    import pytest
+    from pydantic import ValidationError
+
+    data = normalize(Schema, {"name": ""})
+    assert "name" not in data
+    with pytest.raises(ValidationError) as exc:
+        Schema(**data)
+    name_error = next(e for e in exc.value.errors() if e["loc"] == ("name",))
+    assert name_error["type"] == "missing"
+
+
 def test_normalize_recurses_into_list_items():
     data = normalize(Schema, {
         "name": "Jane",

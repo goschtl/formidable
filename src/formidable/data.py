@@ -43,8 +43,9 @@ def unflatten(flat: dict[str, str]) -> dict:
 def normalize(schema: type[BaseModel], data: dict) -> dict:
     """Patch HTML form semantics onto a data tree, recursively.
 
-    Absent checkboxes become False, empty submissions for optional
-    fields are dropped so their defaults apply.
+    Absent checkboxes become False. Empty submissions are dropped:
+    optional fields fall back to their defaults, required ones fail
+    validation as "missing" rather than as an unparsable empty string.
     """
     for name, model_field in schema.model_fields.items():
         token, optional = resolve(model_field.annotation)
@@ -52,7 +53,7 @@ def normalize(schema: type[BaseModel], data: dict) -> dict:
         if token == BOOL:
             if name not in data:
                 data[name] = "false"
-        elif optional and data.get(name) == "":
+        elif data.get(name) == "":
             del data[name]
         elif isinstance(hint, type) and issubclass(hint, BaseModel):
             if isinstance(data.get(name), dict):

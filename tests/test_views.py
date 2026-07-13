@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+from pydantic_core import PydanticCustomError
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request, Response
 
@@ -31,7 +32,7 @@ def test_get_renders_form_with_buttons():
     response = Index()(make_request())
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert '<form method="post">' in html
+    assert '<form method="post" novalidate="novalidate">' in html
     assert '<button name="__trigger__" value="save">Save</button>' in html
 
 
@@ -170,6 +171,74 @@ def test_trigger_with_argument_removes_the_right_row():
     assert 'value="Alice"' in html
     assert 'value="Bob"' not in html
     assert 'name="users.1.name"' not in html
+
+
+def test_model_level_error_renders_at_form_top():
+    class Conditional(BaseModel):
+        agree: bool
+        nickname: str | None = None
+
+        @model_validator(mode="after")
+        def nickname_required_when_agreeing(self):
+            if self.agree and not self.nickname:
+                raise PydanticCustomError(
+                    "nickname_required", "Nickname required when agreeing.")
+            return self
+
+    class CondIndex(Form):
+        def get_schema(self, request):
+            return Conditional
+
+        @trigger(name="save", title="Save", validate=True)
+        def save(self, request, data):
+            return Response("ok")
+
+    response = CondIndex()(make_request("POST", data={
+        "__trigger__": "save", "agree": "true",
+    }))
+    html = response.get_data(as_text=True)
+    assert '<div class="form-errors">' in html
+    assert ('<span class="field-error">'
+            'Nickname required when agreeing.</span>') in html
+    # the submitted state survives the re-render
+    assert "checked" in html
+
+    response = CondIndex()(make_request("POST", data={
+        "__trigger__": "save", "agree": "true", "nickname": "ck",
+    }))
+    assert response.get_data(as_text=True) == "ok"
+
+
+def test_model_level_error_can_bind_to_a_field():
+    class Conditional(BaseModel):
+        agree: bool
+        nickname: str | None = None
+
+        @model_validator(mode="after")
+        def nickname_required_when_agreeing(self):
+            if self.agree and not self.nickname:
+                raise PydanticCustomError(
+                    "nickname_required", "Nickname required when agreeing.",
+                    {"field": "nickname"})
+            return self
+
+    class CondIndex(Form):
+        def get_schema(self, request):
+            return Conditional
+
+        @trigger(name="save", title="Save", validate=True)
+        def save(self, request, data):  # pragma: no cover
+            raise AssertionError("not reached")
+
+    response = CondIndex()(make_request("POST", data={
+        "__trigger__": "save", "agree": "true",
+    }))
+    html = response.get_data(as_text=True)
+    # bound to the nickname widget, not the form top
+    assert '<div class="form-errors">' not in html
+    assert ('<input id="field-nickname" name="nickname" type="text">'
+            '\n    <span class="field-error">'
+            'Nickname required when agreeing.</span>') in html
 
 
 def test_non_validating_trigger_receives_raw_dict():

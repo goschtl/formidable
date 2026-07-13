@@ -7,7 +7,7 @@ from dominate.tags import (
 from dominate.util import raw
 from beartype.door import TypeHint, UnionTypeHint
 from werkzeug.datastructures import FileStorage
-from formidable.themes import Theme, DEFAULT
+from formidable.themes import Theme, DEFAULT, current
 
 
 def classes(*parts: str) -> str:
@@ -266,11 +266,18 @@ class FormRenderer:
     def __init__(self,
                  widgets: dict[TypeHint, type[IFieldRenderer]] | None = None,
                  custom_widgets: dict[str, type[IFieldRenderer]] | None = None,
-                 theme: Theme = DEFAULT):
+                 theme: Theme | None = None,
+                 novalidate: bool = True):
+        if theme is None:
+            theme = current()  # the theme registered site-wide
         # explicit `widgets` beat the theme's, which beat the defaults
         self.widgets = {**BASIC_WIDGETS, **dict(theme.widgets), **(widgets or {})}
         self.custom_widgets = {**(custom_widgets or {})}
         self.theme = theme
+        # Server-side validation is the source of truth: `novalidate`
+        # stops the browser from blocking submits, while the `required`
+        # attributes stay in the markup for accessibility and styling.
+        self.novalidate = novalidate
         self.needs_script = False
         self.needs_multipart = False
 
@@ -310,9 +317,17 @@ class FormRenderer:
         self.needs_script = False
         self.needs_multipart = False
         form_attrs = {"method": "post"}
+        if self.novalidate:
+            form_attrs["novalidate"] = True
         if self.theme.form:
             form_attrs["cls"] = self.theme.form
         f = form(**form_attrs)
+        # model-level errors (cross-field validators) have no field to
+        # attach to: they render at the top of the form
+        if form_error := errors.get(""):
+            f.add(div(
+                span(form_error, cls=classes("field-error", self.theme.error)),
+                cls="form-errors"))
         for name, model_field in model_cls.model_fields.items():
             if name in values:
                 value = values[name]

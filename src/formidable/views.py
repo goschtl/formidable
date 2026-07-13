@@ -2,6 +2,7 @@ import typing as t
 from inspect import unwrap, getmembers, isroutine
 from pydantic import BaseModel, ValidationError
 from werkzeug.wrappers import Response
+from formidable import i18n, themes
 from formidable.data import unflatten, normalize
 from formidable.renderers import FormRenderer
 
@@ -62,6 +63,8 @@ class Form:
 
     button_name: t.ClassVar[str] = "__trigger__"
     methods: t.ClassVar[tuple[str, ...]] = ("GET", "POST")
+    theme: t.ClassVar[themes.Theme | None] = None  # None: site default
+    error_messages: t.ClassVar[i18n.Catalog | None] = None  # None: site default
 
     def __init__(self):
         triggers = sorted(
@@ -82,16 +85,32 @@ class Form:
     def get_schema(self, request) -> type[BaseModel]:
         raise NotImplementedError()
 
+    def get_theme(self, request) -> themes.Theme:
+        """The view's own theme, or the one registered via themes.use()."""
+        if self.theme is not None:
+            return self.theme
+        return themes.current()
+
+    def get_messages(self, request) -> i18n.Catalog:
+        """The view's own catalog, or the one registered via i18n.use().
+
+        Override to pick a catalog per request (e.g. Accept-Language).
+        """
+        if self.error_messages is not None:
+            return self.error_messages
+        return i18n.current()
+
     def get_renderer(self, request):
-        return FormRenderer()
+        return FormRenderer(theme=self.get_theme(request))
 
     def get_data(self, request) -> dict[str, t.Any]:
         """Extract and normalize submitted form data.
 
         Strips the trigger marker, unflattens dot-path names
         (``users.0.name``) into nested dicts and lists, maps absent
-        checkboxes to False and drops empty submissions for optional
-        fields so their defaults apply.
+        checkboxes to False and drops empty submissions so optional
+        fields fall back to their defaults and required ones fail as
+        "missing".
         """
         flat = request.form.to_dict()
         flat.pop(self.button_name, None)
@@ -135,9 +154,15 @@ class Form:
             return btn.action(request, payload)
         except ValidationError as exc:
             errors: dict[str, str] = {}
+            messages = self.get_messages(request)
             for error in exc.errors():
-                loc = ".".join(str(part) for part in error["loc"])
-                errors.setdefault(loc, error["msg"])
+                # a cross-field validator can bind its error to a field
+                # by raising PydanticCustomError with {"field": "<path>"};
+                # otherwise a model-level error renders at the form top
+                ctx = error.get("ctx") or {}
+                loc = ctx.get("field") or ".".join(
+                    str(part) for part in error["loc"])
+                errors.setdefault(loc, i18n.translate(error, messages))
             html_form = self.get_form(request, values=data, errors=errors)
             return self.render_response(html_form, request)
 

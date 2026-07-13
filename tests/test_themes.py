@@ -23,7 +23,7 @@ class Schema(BaseModel):
 def test_default_theme_adds_no_classes():
     html = FormRenderer()(Schema).render()
     assert 'form-control' not in html
-    assert '<form method="post">' in html
+    assert '<form method="post" novalidate="novalidate">' in html
 
 
 def test_theme_classes_are_applied():
@@ -31,7 +31,7 @@ def test_theme_classes_are_applied():
                   input="inp", checkbox="check", fieldset="fs",
                   legend="lg", row_button="rowbtn", button="btn")
     html = FormRenderer(theme=theme)(Schema).render()
-    assert '<form class="my-form" method="post">' in html
+    assert '<form class="my-form" method="post" novalidate="novalidate">' in html
     assert '<div class="wrap">' in html
     assert '<label class="lbl" for="field-name">Your Name</label>' in html
     assert 'class="inp"' in html
@@ -140,6 +140,43 @@ def test_material_marks_errors():
         Schema, values={"name": ""}, errors={"name": "Required"}).render()
     assert 'class="validate invalid"' in html
     assert '<span class="field-error helper-text red-text">Required</span>' in html
+
+
+def test_site_wide_theme_registration():
+    import formidable.themes as themes
+
+    previous = themes.use(BOOTSTRAP)
+    try:
+        # a bare renderer picks up the registered theme
+        html = FormRenderer()(Schema).render()
+        assert "form-control" in html
+
+        # a Form without its own theme uses it too
+        class Index(Form):
+            def get_schema(self, request):
+                return Schema
+
+        builder = EnvironBuilder(method="GET")
+        response = Index()(Request(builder.get_environ()))
+        assert "form-control" in response.get_data(as_text=True)
+
+        # a view-level theme overrides the site default
+        class PlainIndex(Index):
+            theme = Theme()
+
+        response = PlainIndex()(Request(builder.get_environ()))
+        assert "form-control" not in response.get_data(as_text=True)
+    finally:
+        themes.use(previous)
+
+
+def test_use_returns_previous_theme():
+    import formidable.themes as themes
+
+    previous = themes.use(BOOTSTRAP)
+    assert themes.current() is BOOTSTRAP
+    themes.use(previous)
+    assert themes.current() is previous
 
 
 def test_page_includes_theme_assets():

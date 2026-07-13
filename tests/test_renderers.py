@@ -30,6 +30,18 @@ def test_resolve_optional_union():
     assert optional is True
 
 
+def test_browser_validation_is_off_by_default():
+    html = FormRenderer()(Schema).render()
+    assert 'novalidate="novalidate"' in html
+    # required attributes stay for accessibility and styling
+    assert 'required="required"' in html
+
+
+def test_browser_validation_can_be_reenabled():
+    html = FormRenderer(novalidate=False)(Schema).render()
+    assert "novalidate" not in html
+
+
 def test_render_basic_form():
     html = FormRenderer()(Schema).render()
     assert '<input id="field-name" name="name" required="required" type="text">' in html

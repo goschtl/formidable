@@ -41,6 +41,24 @@ class Theme:
 
 DEFAULT = Theme()
 
+_current: Theme = DEFAULT
+
+
+def use(theme: Theme) -> Theme:
+    """Register the site-wide default theme (call once at app startup).
+
+    Returns the previously registered theme, handy for restoring it.
+    """
+    global _current
+    previous = _current
+    _current = theme
+    return previous
+
+
+def current() -> Theme:
+    """The site-wide default theme."""
+    return _current
+
 
 def page(html_form, theme: Theme = DEFAULT, title: str = "") -> str:
     """Wrap a rendered form in a full HTML page with the theme's assets."""
