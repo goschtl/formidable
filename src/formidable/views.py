@@ -1,7 +1,6 @@
 import typing as t
 from inspect import unwrap, getmembers, isroutine
 from pydantic import BaseModel, ValidationError
-from dominate.tags import button
 from werkzeug.wrappers import Response
 from formidable.data import unflatten, normalize
 from formidable.renderers import FormRenderer
@@ -107,18 +106,15 @@ class Form:
     def get_form(self, request, values=None, errors=None):
         schema = self.get_schema(request)
         renderer = self.get_renderer(request)
-        html_form = renderer(schema, values=values, errors=errors)
-        for name, btn in self.buttons.items():
-            html_form.add(button(
-                btn.title,
-                name=self.button_name,
-                value=name,
-            ))
-        return html_form
+        return renderer(schema, values=values, errors=errors,
+                        buttons=self.buttons.values())
+
+    def render_response(self, html_form, request) -> Response:
+        """Hook: wrap the rendered form in a full page if desired."""
+        return Response(html_form.render(), mimetype="text/html")
 
     def GET(self, request):
-        html_form = self.get_form(request)
-        return Response(html_form.render(), mimetype="text/html")
+        return self.render_response(self.get_form(request), request)
 
     def POST(self, request):
         # A trigger value may carry an argument: `remove_user:1`.
@@ -143,7 +139,7 @@ class Form:
                 loc = ".".join(str(part) for part in error["loc"])
                 errors.setdefault(loc, error["msg"])
             html_form = self.get_form(request, values=data, errors=errors)
-            return Response(html_form.render(), mimetype="text/html")
+            return self.render_response(html_form, request)
 
     def __call__(self, request):
         if request.method not in self.methods:

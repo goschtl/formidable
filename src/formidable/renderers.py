@@ -7,6 +7,12 @@ from dominate.tags import (
 from dominate.util import raw
 from beartype.door import TypeHint, UnionTypeHint
 from werkzeug.datastructures import FileStorage
+from formidable.themes import Theme, DEFAULT
+
+
+def classes(*parts: str) -> str:
+    """Merge functional and theme class names, skipping empty ones."""
+    return " ".join(part for part in parts if part)
 
 
 class template(html_tag):
@@ -48,6 +54,10 @@ class IFieldRenderer:
         self.optional = optional
         self.renderer = renderer
 
+    @property
+    def theme(self) -> Theme:
+        return self.renderer.theme if self.renderer is not None else DEFAULT
+
     def render(self,
                name: str,
                field_info: FieldInfo,
@@ -67,21 +77,30 @@ class InputFieldRenderer(IFieldRenderer):
 
     input_type: t.ClassVar[str] = "text"
 
-    def attributes(self, name: str, value: t.Any) -> dict:
+    def attributes(self, name: str, value: t.Any, invalid: bool = False) -> dict:
         attrs = {"type": self.input_type, "name": name, "id": f"field-{name}"}
         if not self.optional:
             attrs["required"] = True
         if value is not None:
             attrs["value"] = str(value)
+        if css := classes(self.theme.input, self.theme.invalid if invalid else ""):
+            attrs["cls"] = css
         return attrs
 
     def render(self, name, field_info, field_type, value=None, errors=None):
+        theme = self.theme
+        error = (errors or {}).get(name)
+        label_attrs = {"html_for": f"field-{name}"}
+        if theme.label:
+            label_attrs["cls"] = theme.label
+        wrapper_attrs = {"cls": theme.wrapper} if theme.wrapper else {}
         field = div(
-            label(field_title(field_info, name), html_for=f"field-{name}"),
-            input_(**self.attributes(name, value)),
+            label(field_title(field_info, name), **label_attrs),
+            input_(**self.attributes(name, value, invalid=bool(error))),
+            **wrapper_attrs,
         )
-        if error := (errors or {}).get(name):
-            field.add(span(error, cls="field-error"))
+        if error:
+            field.add(span(error, cls=classes("field-error", theme.error)))
         return field
 
 
@@ -96,7 +115,7 @@ class IntFieldRenderer(InputFieldRenderer):
 class BoolFieldRenderer(InputFieldRenderer):
     input_type = "checkbox"
 
-    def attributes(self, name, value):
+    def attributes(self, name, value, invalid=False):
         # A checkbox is never marked `required`: an unchecked box submits
         # nothing, which the form layer normalizes to False.
         attrs = {
@@ -107,15 +126,17 @@ class BoolFieldRenderer(InputFieldRenderer):
         }
         if value in TRUTHY:
             attrs["checked"] = True
+        if css := classes(self.theme.checkbox, self.theme.invalid if invalid else ""):
+            attrs["cls"] = css
         return attrs
 
 
 class FileFieldRenderer(InputFieldRenderer):
     input_type = "file"
 
-    def attributes(self, name, value):
+    def attributes(self, name, value, invalid=False):
         # Browsers forbid prefilling file inputs, so never emit a value.
-        return super().attributes(name, None)
+        return super().attributes(name, None, invalid=invalid)
 
     def render(self, name, field_info, field_type, value=None, errors=None):
         field = super().render(name, field_info, field_type,
@@ -123,7 +144,7 @@ class FileFieldRenderer(InputFieldRenderer):
         if value:
             field.add(span(
                 "Previous upload was discarded — please choose the file again.",
-                cls="field-hint"))
+                cls=classes("field-hint", self.theme.hint)))
         if self.renderer is not None:
             self.renderer.needs_multipart = True
         return field
@@ -133,7 +154,11 @@ class ModelFieldRenderer(IFieldRenderer):
     """Renders a nested BaseModel as a fieldset, one widget per field."""
 
     def render(self, name, field_info, field_type, value=None, errors=None):
-        fs = fieldset(legend(field_title(field_info, name)), cls="field-model")
+        theme = self.theme
+        legend_attrs = {"cls": theme.legend} if theme.legend else {}
+        fs = fieldset(
+            legend(field_title(field_info, name), **legend_attrs),
+            cls=classes("field-model", theme.fieldset))
         for sub_name, sub_field in field_type.model_fields.items():
             fs.add(self.renderer.render_field(
                 f"{name}.{sub_name}", sub_field,
@@ -141,7 +166,7 @@ class ModelFieldRenderer(IFieldRenderer):
                 errors=errors,
             ))
         if error := (errors or {}).get(name):
-            fs.add(span(error, cls="field-error"))
+            fs.add(span(error, cls=classes("field-error", theme.error)))
         return fs
 
     @staticmethod
@@ -190,6 +215,7 @@ class ListFieldRenderer(IFieldRenderer):
     client-side add/remove row buttons (a <template> holds the blank row)."""
 
     def render(self, name, field_info, field_type, value=None, errors=None):
+        theme = self.theme
         title = field_title(field_info, name)
         args = t.get_args(field_type)
         item_annotation = args[0] if args else str
@@ -200,7 +226,8 @@ class ListFieldRenderer(IFieldRenderer):
             return div(
                 self.renderer.render_field(
                     f"{name}.{index}", item_info, value=item, errors=errors),
-                button("Remove", type="button", cls="formidable-remove-row"),
+                button("Remove", type="button",
+                       cls=classes("formidable-remove-row", theme.row_button)),
                 cls="field-list-item",
                 data_index=str(index),
             )
@@ -209,15 +236,17 @@ class ListFieldRenderer(IFieldRenderer):
         for index, item in enumerate(value or []):
             items.add(item_row(index, index + 1, item))
 
+        legend_attrs = {"cls": theme.legend} if theme.legend else {}
         fs = fieldset(
-            legend(title),
+            legend(title, **legend_attrs),
             items,
             template(item_row(INDEX_PLACEHOLDER, NUM_PLACEHOLDER, None)),
-            button("Add", type="button", cls="formidable-add-row"),
-            cls="field-list",
+            button("Add", type="button",
+                   cls=classes("formidable-add-row", theme.row_button)),
+            cls=classes("field-list", theme.fieldset),
         )
         if error := (errors or {}).get(name):
-            fs.add(span(error, cls="field-error"))
+            fs.add(span(error, cls=classes("field-error", theme.error)))
         if self.renderer is not None:
             self.renderer.needs_script = True
         return fs
@@ -236,9 +265,12 @@ class FormRenderer:
 
     def __init__(self,
                  widgets: dict[TypeHint, type[IFieldRenderer]] | None = None,
-                 custom_widgets: dict[str, type[IFieldRenderer]] | None = None):
-        self.widgets = {**BASIC_WIDGETS, **(widgets or {})}
+                 custom_widgets: dict[str, type[IFieldRenderer]] | None = None,
+                 theme: Theme = DEFAULT):
+        # explicit `widgets` beat the theme's, which beat the defaults
+        self.widgets = {**BASIC_WIDGETS, **dict(theme.widgets), **(widgets or {})}
         self.custom_widgets = {**(custom_widgets or {})}
+        self.theme = theme
         self.needs_script = False
         self.needs_multipart = False
 
@@ -271,18 +303,27 @@ class FormRenderer:
     def __call__(self,
                  model_cls: type[BaseModel],
                  values: dict[str, t.Any] | None = None,
-                 errors: dict[str, str] | None = None):
+                 errors: dict[str, str] | None = None,
+                 buttons: t.Iterable = ()):
         values = values or {}
         errors = errors or {}
         self.needs_script = False
         self.needs_multipart = False
-        f = form(method="post")
+        form_attrs = {"method": "post"}
+        if self.theme.form:
+            form_attrs["cls"] = self.theme.form
+        f = form(**form_attrs)
         for name, model_field in model_cls.model_fields.items():
             if name in values:
                 value = values[name]
             else:
                 value = default_value(model_field)
             f.add(self.render_field(name, model_field, value=value, errors=errors))
+        for btn in buttons:
+            button_attrs = {"name": btn.type, "value": btn.name}
+            if self.theme.button:
+                button_attrs["cls"] = self.theme.button
+            f.add(button(btn.title, **button_attrs))
         if self.needs_multipart:
             f["enctype"] = "multipart/form-data"
         if self.needs_script:

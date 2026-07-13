@@ -4,7 +4,10 @@ from werkzeug.wrappers import Request, Response
 from pydantic import BaseModel, Field
 from formidable.fields import UploadedFile
 from formidable.views import Form, trigger
-from formidable.renderers import StringFieldRenderer
+from formidable.renderers import FormRenderer, StringFieldRenderer
+from formidable.themes import page
+from formidable.themes.bootstrap import BOOTSTRAP
+from formidable.themes.material import MATERIAL
 from dominate.tags import div
 
 
@@ -16,8 +19,7 @@ class CustomFieldRenderer(StringFieldRenderer):
     otherwise the field is never submitted and validation always fails."""
 
     def render(self, name, field_info, field_type, value=None, errors=None):
-        field = super().render(name, field_info, field_type,
-                               value=value, errors=errors)
+        field = super().render(name, field_info, field_type, value=value, errors=errors)
         field.add(div("I am a custom widget.", cls="custom-hint"))
         return field
 
@@ -41,10 +43,18 @@ class Index(Form):
     def get_schema(self, request):
         return ExampleForm
 
+    theme = BOOTSTRAP
+
     def get_renderer(self, request):
-        renderer = super().get_renderer(request)
-        renderer.custom_widgets = {"name": CustomFieldRenderer}
-        return renderer
+        return FormRenderer(
+            theme=self.theme,
+            custom_widgets={"name": CustomFieldRenderer},
+        )
+
+    def render_response(self, html_form, request):
+        return Response(
+            page(html_form, self.theme, title="formidable demo"),
+            mimetype="text/html")
 
     @trigger(name="save", title="Save", validate=True)
     def save(self, request, data):
@@ -55,8 +65,13 @@ class Index(Form):
         return Response(request.url, status=302, headers=headers)
 
 
+class MaterialIndex(Index):
+    theme = MATERIAL
+
+
 # URL routing rules
 routes.add("/", endpoint=Index())
+routes.add("/material", endpoint=MaterialIndex())
 
 
 class LimitedRequest(Request):
