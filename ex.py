@@ -2,16 +2,22 @@ from autoroutes import Routes as Autoroutes
 from werkzeug.wrappers import Request, Response
 from pydantic import BaseModel, Field
 from formidable.views import Form, trigger
-from formidable.renderers import IFieldRenderer
+from formidable.renderers import StringFieldRenderer
 from dominate.tags import div
 
 
 routes = Autoroutes()
 
 
-class CustomFieldRenderer(IFieldRenderer):
-    def render(self, name, field_info, field_type):
-        return div(f"{name}: I am a custom widget.")
+class CustomFieldRenderer(StringFieldRenderer):
+    """A custom widget must still render an input named `name`,
+    otherwise the field is never submitted and validation always fails."""
+
+    def render(self, name, field_info, field_type, value=None, errors=None):
+        field = super().render(name, field_info, field_type,
+                               value=value, errors=errors)
+        field.add(div("I am a custom widget.", cls="custom-hint"))
+        return field
 
 
 class User(BaseModel):
@@ -25,7 +31,7 @@ class ExampleForm(BaseModel):
     age: int = Field(..., title="Age")
     agree: bool = Field(..., title="I agree to terms")
     nickname: str | None = Field(None, title="Nickname (optional)")
-    users: list[User]
+    users: list[User] = Field(default_factory=list, title="Users")
 
 
 class Index(Form):
@@ -37,11 +43,26 @@ class Index(Form):
         renderer.custom_widgets = {"name": CustomFieldRenderer}
         return renderer
 
-    @trigger(name="save", title="Save")
+    @trigger(name="save", title="Save", validate=True)
     def save(self, request, data):
-        result = self.get_schema(request)(**data)
+        # `data` is a validated ExampleForm instance, not a raw dict.
+        breakpoint()
+        print(data)
         headers = {"Location": request.url}
         return Response(request.url, status=302, headers=headers)
+
+    @trigger(name="add_user", title="Add user", order=1)
+    def add_user(self, request, data):
+        data.setdefault("users", []).append({})
+        html_form = self.get_form(request, values=data)
+        return Response(html_form.render(), mimetype="text/html")
+
+    @trigger(name="remove_user", title="Remove last user", order=2)
+    def remove_user(self, request, data):
+        if users := data.get("users"):
+            users.pop()
+        html_form = self.get_form(request, values=data)
+        return Response(html_form.render(), mimetype="text/html")
 
 
 # URL routing rules

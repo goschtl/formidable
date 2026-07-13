@@ -1,9 +1,9 @@
 import typing as t
-from collections.abc import MutableMapping
 from inspect import unwrap, getmembers, isroutine
 from pydantic import BaseModel, ValidationError
 from dominate.tags import button
-from werkzeug.wrappers import Request, Response
+from werkzeug.wrappers import Response
+from formidable.data import unflatten, normalize
 from formidable.renderers import FormRenderer
 
 
@@ -12,6 +12,7 @@ class Button(t.NamedTuple):
     name: str
     title: str
     action: t.Callable
+    validate: bool
 
 
 class annotation:
@@ -53,13 +54,15 @@ class annotation:
 class trigger(annotation):
     name = "__form_trigger__"
 
-    def __init__(self, name: str, title: str, order: int = 0):
-        super().__init__(name=name, title=title, order=order)
+    def __init__(self, name: str, title: str,
+                 order: int = 0, validate: bool = False):
+        super().__init__(name=name, title=title, order=order, validate=validate)
 
 
 class Form:
 
     button_name: t.ClassVar[str] = "__trigger__"
+    methods: t.ClassVar[tuple[str, ...]] = ("GET", "POST")
 
     def __init__(self):
         triggers = sorted(
@@ -71,24 +74,38 @@ class Form:
                 type=self.button_name,
                 name=ann["name"],
                 title=ann["title"],
-                action=func
+                action=func,
+                validate=ann.get("validate", False),
             )
             for ann, func in triggers
         }
 
-    def get_schema(self, request) -> BaseModel:
+    def get_schema(self, request) -> type[BaseModel]:
         raise NotImplementedError()
 
     def get_renderer(self, request):
         return FormRenderer()
 
-    def get_form(self, request):
+    def get_data(self, request) -> dict[str, t.Any]:
+        """Extract and normalize submitted form data.
+
+        Strips the trigger marker, unflattens dot-path names
+        (``users.0.name``) into nested dicts and lists, maps absent
+        checkboxes to False and drops empty submissions for optional
+        fields so their defaults apply.
+        """
+        flat = request.form.to_dict()
+        flat.pop(self.button_name, None)
+        data = unflatten(flat)
+        return normalize(self.get_schema(request), data)
+
+    def get_form(self, request, values=None, errors=None):
         schema = self.get_schema(request)
         renderer = self.get_renderer(request)
-        html_form = renderer(schema)
-        for name, trigger in self.buttons.items():
+        html_form = renderer(schema, values=values, errors=errors)
+        for name, btn in self.buttons.items():
             html_form.add(button(
-                trigger.title,
+                btn.title,
                 name=self.button_name,
                 value=name,
             ))
@@ -99,18 +116,42 @@ class Form:
         return Response(html_form.render(), mimetype="text/html")
 
     def POST(self, request):
-        data = request.form.to_dict()
-        if trigger := data.get(self.button_name):
-            if endpoint := self.buttons.get(trigger):
-                try:
-                    return endpoint.action(request, data)
-                except ValidationError as exc:
-                    html_form = self.get_form(request)
-                    return Response(
-                        html_form.render(), mimetype="text/html")
-        raise NotImplementedError('Action not found')
+        # A trigger value may carry an argument: `remove_user:1`.
+        name, _, arg = (request.form.get(self.button_name) or "").partition(":")
+        btn = self.buttons.get(name) if name else None
+        if btn is None:
+            return Response("Unknown form action.", status=400)
+        data = self.get_data(request)
+        try:
+            # A validating trigger receives the schema instance,
+            # any other trigger the raw (normalized) data tree.
+            if btn.validate:
+                payload = self.get_schema(request)(**data)
+            else:
+                payload = data
+            if arg:
+                return btn.action(request, payload, arg)
+            return btn.action(request, payload)
+        except ValidationError as exc:
+            errors: dict[str, str] = {}
+            for error in exc.errors():
+                loc = ".".join(str(part) for part in error["loc"])
+                errors.setdefault(loc, error["msg"])
+            html_form = self.get_form(request, values=data, errors=errors)
+            return Response(html_form.render(), mimetype="text/html")
 
     def __call__(self, request):
-        if endpoint := getattr(self, request.method):
-            return endpoint(request)
-        raise NotImplementedError("Unknow method.")
+        if request.method not in self.methods:
+            return Response(
+                "Method Not Allowed",
+                status=405,
+                headers={"Allow": ", ".join(self.methods)},
+            )
+        endpoint = getattr(self, request.method, None)
+        if endpoint is None:
+            return Response(
+                "Method Not Allowed",
+                status=405,
+                headers={"Allow": ", ".join(self.methods)},
+            )
+        return endpoint(request)
