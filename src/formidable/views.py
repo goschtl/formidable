@@ -96,6 +96,11 @@ class Form:
         """
         flat = request.form.to_dict()
         flat.pop(self.button_name, None)
+        for key, storage in request.files.items():
+            # an empty file input submits a part with no filename: treat
+            # it as absent so defaults apply
+            if storage.filename:
+                flat[key] = storage
         data = unflatten(flat)
         return normalize(self.get_schema(request), data)
 

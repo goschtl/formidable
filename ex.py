@@ -1,6 +1,8 @@
 from autoroutes import Routes as Autoroutes
+from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
 from pydantic import BaseModel, Field
+from formidable.fields import UploadedFile
 from formidable.views import Form, trigger
 from formidable.renderers import StringFieldRenderer
 from dominate.tags import div
@@ -31,6 +33,7 @@ class ExampleForm(BaseModel):
     age: int = Field(..., title="Age")
     agree: bool = Field(..., title="I agree to terms")
     nickname: str | None = Field(None, title="Nickname (optional)")
+    avatar: UploadedFile | None = Field(None, title="Avatar")
     users: list[User] = Field(default_factory=list, title="Users")
 
 
@@ -51,31 +54,26 @@ class Index(Form):
         headers = {"Location": request.url}
         return Response(request.url, status=302, headers=headers)
 
-    @trigger(name="add_user", title="Add user", order=1)
-    def add_user(self, request, data):
-        data.setdefault("users", []).append({})
-        html_form = self.get_form(request, values=data)
-        return Response(html_form.render(), mimetype="text/html")
-
-    @trigger(name="remove_user", title="Remove last user", order=2)
-    def remove_user(self, request, data):
-        if users := data.get("users"):
-            users.pop()
-        html_form = self.get_form(request, values=data)
-        return Response(html_form.render(), mimetype="text/html")
-
 
 # URL routing rules
 routes.add("/", endpoint=Index())
 
 
+class LimitedRequest(Request):
+    max_content_length = 2 * 1024 * 1024  # uploads beyond 2 MiB get a 413
+
+
 # Main WSGI application
 def wsgi_app(environ, start_response):
-    request = Request(environ)
+    request = LimitedRequest(environ)
     if matched := routes.match(request.path):
         (route, params) = matched
         if route is not None:
-            response = route["endpoint"](request)
+            try:
+                response = route["endpoint"](request)
+            except HTTPException as exc:
+                # e.g. 413 when an upload exceeds max_content_length
+                response = exc
             return response(environ, start_response)
 
     response = Response("404 Not Found", status=404)

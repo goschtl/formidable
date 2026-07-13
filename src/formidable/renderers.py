@@ -2,8 +2,15 @@ import typing as t
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
-from dominate.tags import form, label, input_, div, span, fieldset, legend
+from dominate.tags import (
+    form, label, input_, div, span, fieldset, legend, button, script, html_tag)
+from dominate.util import raw
 from beartype.door import TypeHint, UnionTypeHint
+from werkzeug.datastructures import FileStorage
+
+
+class template(html_tag):
+    """The HTML5 <template> tag, missing from dominate."""
 
 
 OPTIONAL = TypeHint(None)
@@ -12,13 +19,16 @@ TRUTHY = frozenset(("true", "on", "1", "yes", True))
 
 
 def resolve(annotation) -> tuple[TypeHint, bool]:
-    """Unwrap `X | None` annotations into (hint, optional)."""
+    """Unwrap `X | None` and `Annotated[X, ...]` annotations into
+    (hint, optional)."""
     hint = TypeHint(annotation)
+    optional = False
     if isinstance(hint, UnionTypeHint):
-        first = next(x for x in hint if x != OPTIONAL)
         optional = OPTIONAL in hint
-        return first, optional
-    return hint, False
+        hint = next(x for x in hint if x != OPTIONAL)
+    if getattr(hint.hint, "__metadata__", None) is not None:
+        hint = TypeHint(hint.hint.__origin__)
+    return hint, optional
 
 
 def field_title(field_info: FieldInfo, name: str) -> str:
@@ -100,6 +110,25 @@ class BoolFieldRenderer(InputFieldRenderer):
         return attrs
 
 
+class FileFieldRenderer(InputFieldRenderer):
+    input_type = "file"
+
+    def attributes(self, name, value):
+        # Browsers forbid prefilling file inputs, so never emit a value.
+        return super().attributes(name, None)
+
+    def render(self, name, field_info, field_type, value=None, errors=None):
+        field = super().render(name, field_info, field_type,
+                               value=None, errors=errors)
+        if value:
+            field.add(span(
+                "Previous upload was discarded — please choose the file again.",
+                cls="field-hint"))
+        if self.renderer is not None:
+            self.renderer.needs_multipart = True
+        return field
+
+
 class ModelFieldRenderer(IFieldRenderer):
     """Renders a nested BaseModel as a fieldset, one widget per field."""
 
@@ -124,23 +153,73 @@ class ModelFieldRenderer(IFieldRenderer):
         return default_value(model_field)
 
 
+INDEX_PLACEHOLDER = "__index__"
+NUM_PLACEHOLDER = "__num__"
+
+LIST_SCRIPT = """
+(function () {
+  if (window.__formidable_rows) return;
+  window.__formidable_rows = true;
+  document.addEventListener("click", function (ev) {
+    var add = ev.target.closest(".formidable-add-row");
+    if (add) {
+      var fs = add.closest(".field-list");
+      var tpl = fs.querySelector(":scope > template");
+      var items = fs.querySelector(":scope > .field-list-items");
+      var next = 0;
+      items.querySelectorAll(":scope > .field-list-item").forEach(function (el) {
+        var i = parseInt(el.dataset.index, 10);
+        if (!isNaN(i) && i >= next) next = i + 1;
+      });
+      var html = tpl.innerHTML
+        .replaceAll("__index__", next)
+        .replaceAll("__num__", next + 1);
+      items.insertAdjacentHTML("beforeend", html);
+      return;
+    }
+    var rm = ev.target.closest(".formidable-remove-row");
+    if (rm) rm.closest(".field-list-item").remove();
+    // no reindexing needed: the server accepts sparse indices
+  });
+})();
+"""
+
+
 class ListFieldRenderer(IFieldRenderer):
-    """Renders `list[X]` as a fieldset of indexed sub-widgets."""
+    """Renders `list[X]` as a fieldset of indexed sub-widgets with
+    client-side add/remove row buttons (a <template> holds the blank row)."""
 
     def render(self, name, field_info, field_type, value=None, errors=None):
         title = field_title(field_info, name)
-        fs = fieldset(legend(title), cls="field-list")
         args = t.get_args(field_type)
         item_annotation = args[0] if args else str
-        for index, item in enumerate(value or []):
+
+        def item_row(index, num, item):
             item_info = FieldInfo.from_annotation(item_annotation)
-            item_info.title = f"{title} #{index + 1}"
-            fs.add(self.renderer.render_field(
-                f"{name}.{index}", item_info,
-                value=item, errors=errors,
-            ))
+            item_info.title = f"{title} #{num}"
+            return div(
+                self.renderer.render_field(
+                    f"{name}.{index}", item_info, value=item, errors=errors),
+                button("Remove", type="button", cls="formidable-remove-row"),
+                cls="field-list-item",
+                data_index=str(index),
+            )
+
+        items = div(cls="field-list-items")
+        for index, item in enumerate(value or []):
+            items.add(item_row(index, index + 1, item))
+
+        fs = fieldset(
+            legend(title),
+            items,
+            template(item_row(INDEX_PLACEHOLDER, NUM_PLACEHOLDER, None)),
+            button("Add", type="button", cls="formidable-add-row"),
+            cls="field-list",
+        )
         if error := (errors or {}).get(name):
             fs.add(span(error, cls="field-error"))
+        if self.renderer is not None:
+            self.renderer.needs_script = True
         return fs
 
 
@@ -148,6 +227,8 @@ BASIC_WIDGETS = {
     TypeHint(str): StringFieldRenderer,
     TypeHint(int): IntFieldRenderer,
     TypeHint(bool): BoolFieldRenderer,
+    TypeHint(bytes): FileFieldRenderer,
+    TypeHint(FileStorage): FileFieldRenderer,
 }
 
 
@@ -158,6 +239,8 @@ class FormRenderer:
                  custom_widgets: dict[str, type[IFieldRenderer]] | None = None):
         self.widgets = {**BASIC_WIDGETS, **(widgets or {})}
         self.custom_widgets = {**(custom_widgets or {})}
+        self.needs_script = False
+        self.needs_multipart = False
 
     def dispatch(self, name: str, token: TypeHint) -> type[IFieldRenderer] | None:
         """Pick a widget: by dot path first, then type, then structure."""
@@ -191,6 +274,8 @@ class FormRenderer:
                  errors: dict[str, str] | None = None):
         values = values or {}
         errors = errors or {}
+        self.needs_script = False
+        self.needs_multipart = False
         f = form(method="post")
         for name, model_field in model_cls.model_fields.items():
             if name in values:
@@ -198,4 +283,8 @@ class FormRenderer:
             else:
                 value = default_value(model_field)
             f.add(self.render_field(name, model_field, value=value, errors=errors))
+        if self.needs_multipart:
+            f["enctype"] = "multipart/form-data"
+        if self.needs_script:
+            f.add(script(raw(LIST_SCRIPT)))
         return f
