@@ -112,8 +112,6 @@ def test_material_input_structure():
 
 
 def test_material_checkbox_and_file_structure():
-    from io import BytesIO
-
     from pydantic import BaseModel
 
     from formidable.fields import UploadedFile

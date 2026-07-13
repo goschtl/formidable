@@ -10,6 +10,7 @@ from formidable import i18n, themes
 from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
 from formidable.themes.material import MATERIAL
+from dominate.tags import div
 
 
 themes.use(BOOTSTRAP)  # the site-wide default
@@ -19,8 +20,6 @@ i18n.use({
     "nickname_required": "Wenn Sie den Bedingungen zustimmen, "
                          "ist ein Spitzname erforderlich.",
 })
-from dominate.tags import div
-
 
 routes = Autoroutes()
 
