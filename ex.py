@@ -117,7 +117,6 @@ class Index(Form):
     @trigger(name="save", title="Save", validate=True)
     def save(self, request, data):
         # `data` is a validated ExampleForm instance, not a raw dict.
-        breakpoint()
         print(data)
         headers = {"Location": request.url}
         return Response(request.url, status=302, headers=headers)
