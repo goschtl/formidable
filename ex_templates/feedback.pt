@@ -1,0 +1,21 @@
+<form tal:attributes="form.attributes">
+  ${form.form_errors()}
+  <div class="row">
+    <div class="col-md-6">
+      ${form['salutation']}
+      ${form['name']}
+    </div>
+    <div class="col-md-6">
+      ${form['email']}
+      ${form['nickname']}
+    </div>
+  </div>
+  <h2 class="h5">Anschrift</h2>
+  <div class="row">
+    <div class="col-md-12">${form['anschrift.strasse']}</div>
+    <div class="col-md-4">${form['anschrift.plz']}</div>
+    <div class="col-md-8">${form['anschrift.ort']}</div>
+  </div>
+  ${form.buttons()}
+</form>
+${form.scripts()}

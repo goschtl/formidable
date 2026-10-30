@@ -14,6 +14,8 @@ class Schema(BaseModel):
 
 
 class Index(Form):
+    csrf = False
+
     def get_schema(self, request):
         return Schema
 
@@ -98,6 +100,8 @@ class NestedSchema(BaseModel):
 
 
 class NestedIndex(Form):
+    csrf = False
+
     def get_schema(self, request):
         return NestedSchema
 
@@ -110,7 +114,7 @@ class NestedIndex(Form):
     def add_user(self, request, data):
         data.setdefault("users", []).append({})
         html_form = self.get_form(request, values=data)
-        return Response(html_form.render(), mimetype="text/html")
+        return Response(html_form, mimetype="text/html")
 
     @trigger(name="remove_user", title="Remove user")
     def remove_user(self, request, data, index):
@@ -118,7 +122,7 @@ class NestedIndex(Form):
         if index.isdigit() and int(index) < len(users):
             users.pop(int(index))
         html_form = self.get_form(request, values=data)
-        return Response(html_form.render(), mimetype="text/html")
+        return Response(html_form, mimetype="text/html")
 
 
 def test_post_nested_data_validates():
@@ -186,6 +190,8 @@ def test_model_level_error_renders_at_form_top():
             return self
 
     class CondIndex(Form):
+        csrf = False
+
         def get_schema(self, request):
             return Conditional
 
@@ -197,7 +203,7 @@ def test_model_level_error_renders_at_form_top():
         "__trigger__": "save", "agree": "true",
     }))
     html = response.get_data(as_text=True)
-    assert '<div class="form-errors">' in html
+    assert 'class="form-errors"' in html
     assert ('<span class="field-error">'
             'Nickname required when agreeing.</span>') in html
     # the submitted state survives the re-render
@@ -223,6 +229,8 @@ def test_model_level_error_can_bind_to_a_field():
             return self
 
     class CondIndex(Form):
+        csrf = False
+
         def get_schema(self, request):
             return Conditional
 
@@ -234,11 +242,11 @@ def test_model_level_error_can_bind_to_a_field():
         "__trigger__": "save", "agree": "true",
     }))
     html = response.get_data(as_text=True)
-    # bound to the nickname widget, not the form top
-    assert '<div class="form-errors">' not in html
-    assert ('<input id="field-nickname" name="nickname" type="text">'
-            '\n    <span class="field-error">'
+    # bound to the nickname widget, and linked from the summary
+    assert ('name="nickname" type="text">'
+            '\n  <span class="field-error" id="field-nickname-error">'
             'Nickname required when agreeing.</span>') in html
+    assert '<a href="#field-nickname">' in html
 
 
 def test_non_validating_trigger_receives_raw_dict():

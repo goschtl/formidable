@@ -1,0 +1,3 @@
+<div class="form-readonly">
+  <tal:field repeat="field fields">${field}</tal:field>
+</div>

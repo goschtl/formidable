@@ -1,0 +1,1 @@
+<p class="${classes('form-status', theme.status)}" role="status">${message}</p>

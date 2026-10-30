@@ -1,0 +1,4 @@
+<div class="${classes('field-readonly', theme.wrapper)}">
+  <div class="${classes('field-readonly-label', theme.label)}"><strong>${title}</strong></div>
+  <div class="field-readonly-value" style="${'white-space: pre-line' if multiline else None}">${text or '—'}<tal:unit condition="text and unit"> ${unit}</tal:unit></div>
+</div>

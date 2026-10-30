@@ -1,0 +1,7 @@
+<div class="${classes(theme.wrapper)}" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
+  <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
+  <textarea aria-describedby="${described_by}" aria-invalid="${invalid}" class="${css}" id="field-${name}" name="${name}" placeholder="${placeholder}" required="${required}" tal:attributes="control_attrs">${value}</textarea>
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, name=name, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, name=name, theme=theme)}
+</div>

@@ -1,0 +1,6 @@
+<div class="${classes(theme.wrapper)}">
+  <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
+  <input aria-describedby="${described_by}" aria-invalid="${invalid}" class="${css}" id="field-${name}" name="${name}" required="${required}" type="${input_type}" value="${value}">
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  <div class="custom-hint">I am a custom widget.</div>
+</div>

@@ -1,0 +1,4 @@
+<div class="field-list-item" data-index="${index}">
+  ${field}
+  <button class="${classes('formidable-remove-row', theme.row_button)}" type="button">Remove</button>
+</div>

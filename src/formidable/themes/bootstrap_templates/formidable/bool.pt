@@ -1,0 +1,7 @@
+<div class="mb-3 form-check" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
+  <input aria-describedby="${described_by}" aria-invalid="${invalid}" checked="${checked}" class="${css}" id="field-${name}" name="${name}" type="checkbox" value="${value}" tal:attributes="control_attrs">
+  <label class="form-check-label" for="field-${name}">${title}</label>
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, name=name, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, name=name, theme=theme)}
+</div>

@@ -1,0 +1,210 @@
+{
+  "ht_pflichtfelder": {
+    "ui:widget": "helptext",
+    "ui:title": "HT_Pflichtfelder"
+  },
+  "aktenzeichen": {
+    "ui:title": "Aktenzeichen:"
+  },
+  "fs_schreibweise_name": {
+    "ui:title": "Die genaue Schreibweise meines Namens lautet:",
+    "ui:description": "vollständiger Name"
+  },
+  "fs_geburtsdatum": {
+    "ui:title": "Mein Geburtsdatum lautet:",
+    "ui:widget": "date"
+  },
+  "fs_unfall_in_berufsb_einrichtung": {
+    "ui:title": "Ist der Unfall im Zusammenhang mit dem Besuch einer berufsbildenden Einrichtung eingetreten?",
+    "ui:attributes": {
+      "data-condition-target": "fs_name_anschrift_einrichtung"
+    },
+    "ui:widget": "radio",
+    "ui:options": [
+      {
+        "value": "Nein",
+        "label": "Nein"
+      },
+      {
+        "value": "Ja",
+        "label": "Ja"
+      }
+    ]
+  },
+  "fs_name_anschrift_einrichtung": {
+    "ui:title": "Name und vollständige Anschrift der berufsbildenden Einrichtung:",
+    "ui:conditions": [
+      {
+        "field": "fs_unfall_in_berufsb_einrichtung",
+        "operator": "equals",
+        "value": "Ja"
+      }
+    ],
+    "ui:condition_logic": "or",
+    "ui:widget": "textarea"
+  },
+  "fs_firma_uzeitpunkt": {
+    "ui:title": "In welchem Unternehmen waren Sie zur Zeit des Unfalls beschäftigt?",
+    "ui:description": "Name und vollständige Anschrift des Hauptsitzes des Unternehmens.",
+    "ui:widget": "textarea"
+  },
+  "fs_betriebsstaette": {
+    "ui:title": "Wie lautet ggf. die vollständige Anschrift der Betriebsstätte (Filiale) des Unternehmens, in der Sie tatsächlich eingesetzt werden?",
+    "ui:description": "Name und vollständige Anschrift der Betriebsstätte (Filiale).",
+    "ui:widget": "textarea"
+  },
+  "fs_branche": {
+    "ui:title": "Art (Branche) des Unternehmens?",
+    "ui:placeholder": "z.B. Textilfabrik, Holzfabrik, Maschinenfabrik, Landwirtschaft, Baugeschäft, usw."
+  },
+  "fs_uvt": {
+    "ui:title": "Zuständiger Unfallversicherungsträger für das Unternehmen?",
+    "ui:widget": "select",
+    "ui:options": [
+      {
+        "value": "Berufsgenossenschaft der Bauwirtschaft",
+        "label": "Berufsgenossenschaft der Bauwirtschaft"
+      },
+      {
+        "value": "Berufsgenossenschaft Energie Textil Elektro Medienerzeugnisse",
+        "label": "Berufsgenossenschaft Energie Textil Elektro Medienerzeugnisse"
+      },
+      {
+        "value": "Berufsgenossenschaft Holz und Metall",
+        "label": "Berufsgenossenschaft Holz und Metall"
+      },
+      {
+        "value": "Berufsgenossenschaft Verkehrswirtschaft Post-Logistik Telekommunikation",
+        "label": "Berufsgenossenschaft Verkehrswirtschaft Post-Logistik Telekommunikation"
+      },
+      {
+        "value": "Berufsgenossenschaft Handel und Warenlogistik",
+        "label": "Berufsgenossenschaft Handel und Warenlogistik"
+      },
+      {
+        "value": "Berufsgenossenschaft Nahrungsmittel und Gastgewerbe",
+        "label": "Berufsgenossenschaft Nahrungsmittel und Gastgewerbe"
+      },
+      {
+        "value": "Berufsgenossenschaft Rohstoffe und chemische Industrie",
+        "label": "Berufsgenossenschaft Rohstoffe und chemische Industrie"
+      },
+      {
+        "value": "Berufsgenossenschaft für Gesundheitsdienst und Wohlfahrtspflege",
+        "label": "Berufsgenossenschaft für Gesundheitsdienst und Wohlfahrtspflege"
+      },
+      {
+        "value": "Verwaltungs-Berufsgenossenschaft",
+        "label": "Verwaltungs-Berufsgenossenschaft"
+      },
+      {
+        "value": "Sozialversicherung Landwirtschaft, Forst und Garten",
+        "label": "Sozialversicherung Landwirtschaft, Forst und Garten"
+      },
+      {
+        "value": "Bayerische Landesunfallkasse",
+        "label": "Bayerische Landesunfallkasse"
+      },
+      {
+        "value": "Braunschweigischer Gemeindeunfallversicherungsverband",
+        "label": "Braunschweigischer Gemeindeunfallversicherungsverband"
+      },
+      {
+        "value": "Feuerwehr-Unfallkasse Brandenburg",
+        "label": "Feuerwehr-Unfallkasse Brandenburg"
+      },
+      {
+        "value": "Feuerwehr-Unfallkasse Mitte",
+        "label": "Feuerwehr-Unfallkasse Mitte"
+      },
+      {
+        "value": "Feuerwehr-Unfallkasse Niedersachsen",
+        "label": "Feuerwehr-Unfallkasse Niedersachsen"
+      },
+      {
+        "value": "Gemeinde-Unfallversicherungsverband Hannover",
+        "label": "Gemeinde-Unfallversicherungsverband Hannover"
+      },
+      {
+        "value": "Gemeinde-Unfallversicherungsverband Oldenburg",
+        "label": "Gemeinde-Unfallversicherungsverband Oldenburg"
+      },
+      {
+        "value": "Hanseatische Feuerwehr-Unfallkasse Nord",
+        "label": "Hanseatische Feuerwehr-Unfallkasse Nord"
+      },
+      {
+        "value": "Kommunale Unfallversicherung Bayern",
+        "label": "Kommunale Unfallversicherung Bayern"
+      },
+      {
+        "value": "Landesunfallkasse Niedersachsen",
+        "label": "Landesunfallkasse Niedersachsen"
+      },
+      {
+        "value": "Unfallkasse Brandenburg",
+        "label": "Unfallkasse Brandenburg"
+      },
+      {
+        "value": "Unfallkasse Berlin",
+        "label": "Unfallkasse Berlin"
+      },
+      {
+        "value": "Unfallkasse Freie Hansestadt Bremen",
+        "label": "Unfallkasse Freie Hansestadt Bremen"
+      },
+      {
+        "value": "Unfallkasse Baden-Württemberg",
+        "label": "Unfallkasse Baden-Württemberg"
+      },
+      {
+        "value": "Unfallkasse Hessen",
+        "label": "Unfallkasse Hessen"
+      },
+      {
+        "value": "Unfallkasse Mecklenburg-Vorpommern",
+        "label": "Unfallkasse Mecklenburg-Vorpommern"
+      },
+      {
+        "value": "Unfallkasse Nord",
+        "label": "Unfallkasse Nord"
+      },
+      {
+        "value": "Unfallkasse Nordrhein-Westfalen",
+        "label": "Unfallkasse Nordrhein-Westfalen"
+      },
+      {
+        "value": "Unfallkasse Rheinland-Pfalz",
+        "label": "Unfallkasse Rheinland-Pfalz"
+      },
+      {
+        "value": "Unfallkasse Saarland",
+        "label": "Unfallkasse Saarland"
+      },
+      {
+        "value": "Unfallkasse Sachsen",
+        "label": "Unfallkasse Sachsen"
+      },
+      {
+        "value": "Unfallkasse Sachsen-Anhalt",
+        "label": "Unfallkasse Sachsen-Anhalt"
+      },
+      {
+        "value": "Unfallkasse Thüringen",
+        "label": "Unfallkasse Thüringen"
+      },
+      {
+        "value": "Unfallversicherung Bund und Bahn",
+        "label": "Unfallversicherung Bund und Bahn"
+      }
+    ]
+  },
+  "fs_unternehmensnummer": {
+    "ui:title": "Wie lautet die Unternehmensnummer des Unternehmens bei diesem Unfallversicherungsträger?",
+    "ui:description": "Bitte beim Arbeitgeber erfragen.",
+    "ui:mask": {
+      "mask": "99-9999",
+      "mask_placeholder": "#"
+    }
+  }
+}

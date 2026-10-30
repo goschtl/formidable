@@ -1,0 +1,55 @@
+site_name: formidable
+site_description: Generate HTML forms from Pydantic models
+site_url: https://goschtl.github.io/formidable/
+repo_url: https://github.com/goschtl/formidable
+repo_name: goschtl/formidable
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  font: false
+  features:
+    - content.code.copy
+    - navigation.sections
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Building forms:
+      - Fields and widgets: fields.md
+      - Views and buttons: views.md
+      - Validation and errors: validation.md
+      - Multi-step forms and drafts: wizard.md
+      - Read-only views: readonly.md
+      - Accessibility: accessibility.md
+  - Layout and markup:
+      - Your own form layout: layouts.md
+      - Changing the markup: templates.md
+      - Themes: themes.md
+  - Presentation and behaviour:
+      - UI schemas: ui-schema.md
+      - Conditional fields: conditions.md
+      - File uploads: uploads.md
+      - Translations: translations.md
+  - Development: development.md

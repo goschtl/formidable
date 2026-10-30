@@ -1,6 +1,10 @@
 version = 1
 revision = 3
 requires-python = ">=3.12"
+resolution-markers = [
+    "python_full_version >= '3.13'",
+    "python_full_version < '3.13'",
+]
 
 [[package]]
 name = "annotated-types"
@@ -36,21 +40,38 @@ wheels = [
 ]
 
 [[package]]
+name = "chameleon-rs"
+version = "0.1.56"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/67/c12fbc18230ffa1e8a4b663625d8612b733aa000d90caafc509ddb40443c/chameleon_rs-0.1.56.tar.gz", hash = "sha256:8e3d9eae0a426fea19d59243e5fc65f46e855455b7c01d57e1949e29dfac5775", size = 411986, upload-time = "2026-10-30T03:20:49.616Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/cc/3a85b111fadb2ac965e95ee2e9d5be0e855b465b3c52e41b5b1390867d3d/chameleon_rs-0.1.56-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4c4fc3194d0550cd61038ee8cc946354bdd9d256015a2fbac861ee968de544eb", size = 1817796, upload-time = "2026-10-30T03:20:21.796Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/de/79c82e3123a0c0f8a1f04a14afe9c168c0568a7bd2078db4b6ac9a58d053/chameleon_rs-0.1.56-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:0d019c766ef4489a5e40efddc081fefe876b2942cc758d7138e4d4305a4ddd07", size = 1880155, upload-time = "2026-10-30T03:20:23.426Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/7a/f832aa3d17c0af18666f0e02ed5e7b71b2d29e922c6e8a4515164bd4de77/chameleon_rs-0.1.56-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:f9db0312f8abfc251712170e27ca901335de5d419024a08c6d841c8afb292704", size = 2030826, upload-time = "2026-10-30T03:20:25.076Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/2d/2cbe5d0ea4b5c4e03b2b9bce0a9db5963606a83e561f37ea8e72eb14add5/chameleon_rs-0.1.56-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:2608cf2554ea83b72c450f0196228b19c952ac5061a664b2e9b282e21037e52a", size = 1817839, upload-time = "2026-10-30T03:20:26.436Z" },
+    { url = "https://files.pythonhosted.org/packages/25/81/ad49af380a5ff0f2a2d2cdb6c436567b206c0102d9cd8d994c3c3c094d95/chameleon_rs-0.1.56-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:49a8451e9244b9e6f46ef2d05c117f0ea45ea2abaa79d341eed00e2c161fb33d", size = 1880155, upload-time = "2026-10-30T03:20:28.001Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/27/584dde23a067b84fb1419fc39d05ddccfe542203ad5536d3a80fa17c7544/chameleon_rs-0.1.56-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:86703de2d7dcae32e5f72ccea31d0dd5e0f6f05735afe1c5f262aab5ad0b3850", size = 2031461, upload-time = "2026-10-30T03:20:29.488Z" },
+    { url = "https://files.pythonhosted.org/packages/02/d1/e65e60d64e67bc80694e16af28380dca405d6f681c0834521d2026e2abe2/chameleon_rs-0.1.56-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:0e60895371c5435013ecf2dbbea33f6c5e3fcd17a72d1eed34deb5d3e1c65f9b", size = 1818217, upload-time = "2026-10-30T03:20:31.141Z" },
+    { url = "https://files.pythonhosted.org/packages/11/2f/1a66af08074e683f9fac350d3ccb49d7eafe3c481cc813d3436018fa476f/chameleon_rs-0.1.56-cp314-cp314-manylinux_2_28_aarch64.whl", hash = "sha256:297766e2064bf92ee8b03998aaf8de7c7c4e4b284111f03ea6337517158f21ec", size = 1880639, upload-time = "2026-10-30T03:20:32.438Z" },
+    { url = "https://files.pythonhosted.org/packages/2d/41/1b02042a7c53f020f160715cf5fd7090d6b515c2e9b67e20c49d99d6fd84/chameleon_rs-0.1.56-cp314-cp314-manylinux_2_28_x86_64.whl", hash = "sha256:7b7df29157cf8b49cb660212aaf6672d84d422a6aeedb1dd812af083dc5985b8", size = 2030784, upload-time = "2026-10-30T03:20:34.205Z" },
+    { url = "https://files.pythonhosted.org/packages/16/05/12b901d316adabb63cbc6ea185227cbf131ee1acd2d8a38fa4499e719703/chameleon_rs-0.1.56-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:51379c7d315500d840e15c2b70a90f51d90da7bc1865fa6cd4a6db0c9ab50cd4", size = 1797770, upload-time = "2026-10-30T03:20:35.794Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/d2/700a352f0ce70b941cb34e9a16aa8314043b5c60158c7ac8c3490b400a20/chameleon_rs-0.1.56-cp314-cp314t-manylinux_2_28_aarch64.whl", hash = "sha256:adfce17d489a5ef46c0b15bb1a9e50cbafef0dd07ab37b57396239157ef340bb", size = 1852222, upload-time = "2026-10-30T03:20:37.343Z" },
+    { url = "https://files.pythonhosted.org/packages/47/46/973112e513149aa1c0c59c7f6cc0cac7ff920e6319846153946c0fcc412b/chameleon_rs-0.1.56-cp314-cp314t-manylinux_2_28_x86_64.whl", hash = "sha256:b2a81de222fae757ef4e1b62a60e77a337552c969ceeece2b7d8085fd66cf333", size = 2004281, upload-time = "2026-10-30T03:20:38.807Z" },
+    { url = "https://files.pythonhosted.org/packages/36/76/0ccdb0019fdacdafb62d6722848f5e05d35441fd2d2719229d0a6f54c71f/chameleon_rs-0.1.56-cp315-cp315-macosx_11_0_arm64.whl", hash = "sha256:fad52a2d9266f19428138cb9495ad405baf393386c5a16794e3b6e44978b10fb", size = 1818287, upload-time = "2026-10-30T03:20:40.347Z" },
+    { url = "https://files.pythonhosted.org/packages/88/85/57c39bc56d28d92e27f2673f856fbb90c02b9721ba4e71742639006faef8/chameleon_rs-0.1.56-cp315-cp315-manylinux_2_28_aarch64.whl", hash = "sha256:24ed394865c9143b4e3c52a03e5d2cadc1d1bfa8f2fe8e69b776e00bc2470ac0", size = 1879941, upload-time = "2026-10-30T03:20:41.723Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/4a/643a171e72235a8b4bb0018ddc08669bbc7a4c24fa50152b66743609267c/chameleon_rs-0.1.56-cp315-cp315-manylinux_2_28_x86_64.whl", hash = "sha256:b8162963fa21965f19cf09fb3e7fa11f64bbcc0078535a36ae14d3a75d598c02", size = 2030893, upload-time = "2026-10-30T03:20:43.119Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/aa/68609ad8a7df78b49e95a40a4b89573a8c0c64c38525bd88b59b1721aaa6/chameleon_rs-0.1.56-cp315-cp315t-macosx_11_0_arm64.whl", hash = "sha256:189c3a292ea2f421e3aa3a2a560c910be9c4d98e3d1516b98221b28311bc4716", size = 1797879, upload-time = "2026-10-30T03:20:44.587Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/66/f99ebefdc959fda978bfa6c5a7258675e9cb3b5322af04e6544ded4cdd2a/chameleon_rs-0.1.56-cp315-cp315t-manylinux_2_28_aarch64.whl", hash = "sha256:5976c5016eefe386f10e438fe5103fa23c9c7bb97cd8a742fbd58e087841cb5c", size = 1852451, upload-time = "2026-10-30T03:20:46.922Z" },
+    { url = "https://files.pythonhosted.org/packages/46/6e/7bad5b33e8a710ac7e6841f7e7646b6f3ce68cc9053cc95abc390e020b79/chameleon_rs-0.1.56-cp315-cp315t-manylinux_2_28_x86_64.whl", hash = "sha256:0fa624920dc5265ed0a82772d4790758b1a2928d97f6d16eddb58548466d8352", size = 2004636, upload-time = "2026-10-30T03:20:48.508Z" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
-]
-
-[[package]]
-name = "dominate"
-version = "2.9.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fb/f3/1c8088ff19a0fcd9c3234802a0ee47006ea64bd8852f1019194f0e3583ff/dominate-2.9.1.tar.gz", hash = "sha256:558284687d9b8aae1904e3d6051ad132dd4a8c0cf551b37ea4e7e42a31d19dc4", size = 37715, upload-time = "2023-12-24T20:45:19.192Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/19/0380af745f151a1648657bbcef0fb49ac28bf09083d94498163ffd9b32dc/dominate-2.9.1-py2.py3-none-any.whl", hash = "sha256:cb7b6b79d33b15ae0a6e87856b984879927c7c2ebb29522df4c75b28ffd9b989", size = 29976, upload-time = "2023-12-24T20:45:17.154Z" },
 ]
 
 [[package]]
@@ -73,7 +94,8 @@ source = { editable = "." }
 dependencies = [
     { name = "autoroutes" },
     { name = "beartype" },
-    { name = "dominate" },
+    { name = "chameleon-rs" },
+    { name = "markupsafe" },
     { name = "pydantic" },
     { name = "werkzeug" },
 ]
@@ -88,7 +110,8 @@ dev = [
 requires-dist = [
     { name = "autoroutes" },
     { name = "beartype" },
-    { name = "dominate", specifier = ">=2.9.1" },
+    { name = "chameleon-rs", specifier = ">=0.1.56" },
+    { name = "markupsafe", specifier = ">=3.0.3" },
     { name = "pydantic", specifier = ">=2.11.1" },
     { name = "werkzeug", specifier = ">=3.1.3" },
 ]

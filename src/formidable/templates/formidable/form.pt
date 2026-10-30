@@ -1,0 +1,7 @@
+<form class="${classes(theme.form)}" enctype="${enctype}" method="post" novalidate="${novalidate}">
+  ${csrf}
+  ${form_errors}
+  <tal:field repeat="field fields">${field}</tal:field>
+  <tal:button repeat="button buttons">${button}</tal:button>
+  ${script}
+</form>

@@ -1,0 +1,7 @@
+<div autofocus="autofocus" class="${classes('form-errors', theme.summary)}" role="alert" tabindex="-1">
+  <p class="form-errors-title">${heading}</p>
+  ${render_partial('formidable/error.pt', error=error, name=None, theme=theme)}
+  <ul tal:condition="items">
+    <li tal:repeat="item items"><a href="#field-${item.path}">${item.title}: ${item.message}</a></li>
+  </ul>
+</div>

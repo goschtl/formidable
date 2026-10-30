@@ -17,6 +17,8 @@ class Schema(BaseModel):
 
 
 class Index(Form):
+    csrf = False
+
     def get_schema(self, request):
         return Schema
 
@@ -40,7 +42,7 @@ def test_read_upload_converts_filestorage():
 
 def test_file_field_renders_file_input_and_enctype():
     renderer = FormRenderer()
-    html = renderer(Schema).render()
+    html = renderer(Schema)
     assert 'enctype="multipart/form-data"' in html
     assert '<input id="field-avatar" name="avatar" required="required" type="file">' in html
     # optional upload is not required
@@ -51,11 +53,11 @@ def test_forms_without_files_have_no_enctype():
     class Plain(BaseModel):
         name: str
 
-    assert "enctype" not in FormRenderer()(Plain).render()
+    assert "enctype" not in FormRenderer()(Plain)
 
 
 def test_file_input_never_prefills_value():
-    html = FormRenderer()(Schema, values={"avatar": b"secret"}).render()
+    html = FormRenderer()(Schema, values={"avatar": b"secret"})
     assert "secret" not in html
     assert "please choose the file again" in html
 
@@ -108,6 +110,8 @@ class StreamSchema(BaseModel):
 
 
 class StreamIndex(Form):
+    csrf = False
+
     def get_schema(self, request):
         return StreamSchema
 
@@ -120,7 +124,7 @@ class StreamIndex(Form):
 
 
 def test_uploaded_file_renders_file_input():
-    html = FormRenderer()(StreamSchema).render()
+    html = FormRenderer()(StreamSchema)
     assert 'enctype="multipart/form-data"' in html
     assert '<input id="field-doc" name="doc" required="required" type="file">' in html
     assert '<input id="field-note" name="note" type="file">' in html
@@ -154,6 +158,8 @@ def test_nested_upload_via_dot_path():
         docs: list[Doc] = Field(default_factory=list)
 
     class DocsIndex(Form):
+        csrf = False
+
         def get_schema(self, request):
             return WithDocs
 

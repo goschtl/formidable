@@ -1,0 +1,1 @@
+<span tal:condition="hint" tal:define="field name | None" class="${classes('field-hint', theme.hint)}" id="${'field-%s-hint' % field if field else None}">${hint}</span>

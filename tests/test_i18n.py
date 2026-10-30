@@ -12,6 +12,8 @@ class Schema(BaseModel):
 
 
 class Index(Form):
+    csrf = False
+
     def get_schema(self, request):
         return Schema
 

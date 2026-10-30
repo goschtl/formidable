@@ -1,0 +1,13 @@
+<div class="file-field input-field" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
+  <div class="btn">
+    <span>${title}</span>
+    <input aria-describedby="${described_by}" aria-invalid="${invalid}" accept="${accept}" class="${css}" id="field-${name}" multiple="${multiple}" name="${name}" required="${required}" type="file" tal:attributes="control_attrs">
+  </div>
+  <div class="file-path-wrapper">
+    <input class="file-path validate" type="text">
+  </div>
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, name=name, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, name=name, theme=theme)}
+  ${render_partial('formidable/hint.pt', hint=hint, name=name, theme=theme)}
+</div>

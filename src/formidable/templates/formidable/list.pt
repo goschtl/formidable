@@ -1,0 +1,11 @@
+<fieldset aria-describedby="${described_by}" class="${classes('field-list', theme.fieldset)}" data-conditions="${conditions}" id="field-${name}" tal:attributes="wrapper_attrs">
+  <legend class="${classes(theme.legend)}">${title}</legend>
+  <div class="field-list-items">
+    <tal:row repeat="row rows">${row}</tal:row>
+  </div>
+  <template>${blank_row}</template>
+  <button class="${classes('formidable-add-row', theme.row_button)}" type="button">Add</button>
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, name=name, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, name=name, theme=theme)}
+</fieldset>

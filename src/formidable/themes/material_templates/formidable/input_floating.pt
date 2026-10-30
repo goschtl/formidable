@@ -1,0 +1,8 @@
+<div class="input-field" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
+  <input aria-describedby="${described_by}" aria-invalid="${invalid}" class="${css}" id="field-${name}" name="${name}" placeholder="${placeholder}" required="${required}" step="${step}" type="${input_type}" value="${value}" tal:attributes="control_attrs">
+  <label class="${'active' if value is not None else None}" for="field-${name}">${title}</label>
+  <span tal:condition="unit" class="${classes('field-unit', theme.unit)}">${unit}</span>
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, name=name, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, name=name, theme=theme)}
+</div>
