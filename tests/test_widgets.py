@@ -12,7 +12,7 @@ from formidable.views import Form, trigger
 
 
 def render(model, **kw):
-    return FormRenderer()(model, **kw).render()
+    return FormRenderer()(model, **kw)
 
 
 def test_float_and_decimal_render_number_step_any():

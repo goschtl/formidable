@@ -1,0 +1,1 @@
+<span tal:condition="error" class="${classes('field-error', theme.error)}">${error}</span>

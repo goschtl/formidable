@@ -1,0 +1,11 @@
+<div class="file-field input-field">
+  <div class="btn">
+    <span>${title}</span>
+    <input class="${css}" id="field-${name}" name="${name}" required="${required}" type="file">
+  </div>
+  <div class="file-path-wrapper">
+    <input class="file-path validate" type="text">
+  </div>
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+  ${render_partial('formidable/hint.pt', hint=hint, theme=theme)}
+</div>

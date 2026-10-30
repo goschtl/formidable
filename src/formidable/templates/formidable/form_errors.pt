@@ -1,0 +1,3 @@
+<div class="form-errors">
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</div>

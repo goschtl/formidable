@@ -114,7 +114,7 @@ class NestedIndex(Form):
     def add_user(self, request, data):
         data.setdefault("users", []).append({})
         html_form = self.get_form(request, values=data)
-        return Response(html_form.render(), mimetype="text/html")
+        return Response(html_form, mimetype="text/html")
 
     @trigger(name="remove_user", title="Remove user")
     def remove_user(self, request, data, index):
@@ -122,7 +122,7 @@ class NestedIndex(Form):
         if index.isdigit() and int(index) < len(users):
             users.pop(int(index))
         html_form = self.get_form(request, values=data)
-        return Response(html_form.render(), mimetype="text/html")
+        return Response(html_form, mimetype="text/html")
 
 
 def test_post_nested_data_validates():
@@ -245,7 +245,7 @@ def test_model_level_error_can_bind_to_a_field():
     # bound to the nickname widget, not the form top
     assert '<div class="form-errors">' not in html
     assert ('<input id="field-nickname" name="nickname" type="text">'
-            '\n    <span class="field-error">'
+            '\n  <span class="field-error">'
             'Nickname required when agreeing.</span>') in html
 
 

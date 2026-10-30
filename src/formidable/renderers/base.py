@@ -2,6 +2,11 @@
 
 import enum
 import typing as t
+from functools import lru_cache
+from pathlib import Path
+from chameleon_rs import PageTemplateLoader
+from chameleon_rs.template import HTML5_BOOLEAN_ATTRIBUTES
+from markupsafe import Markup
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 from beartype.door import TypeHint, UnionTypeHint
@@ -14,10 +19,34 @@ TRUTHY = frozenset(("true", "on", "1", "yes", True))
 
 CSRF_FIELD = "__csrf__"
 
+TEMPLATES = Path(__file__).parent.parent / "templates"
 
-def classes(*parts: str) -> str:
-    """Merge functional and theme class names, skipping empty ones."""
-    return " ".join(part for part in parts if part)
+
+def classes(*parts: str) -> str | None:
+    """Merge functional and theme class names, skipping empty ones.
+
+    None when nothing is left: templates then drop the attribute."""
+    return " ".join(part for part in parts if part) or None
+
+
+@lru_cache
+def loader(dirs: tuple[str, ...]) -> PageTemplateLoader:
+    """A template loader searching `dirs`, then the built-in templates.
+
+    Deliberately no `chameleon_rs.configure()`: that setting is
+    process-wide and belongs to the host application.
+    """
+    return PageTemplateLoader(
+        [*dirs, str(TEMPLATES)],
+        boolean_attributes=HTML5_BOOLEAN_ATTRIBUTES,
+        extra_builtins={"classes": classes},
+        strict_tags=True,
+    )
+
+
+def render_template(template: str, /, dirs: tuple[str, ...] = (),
+                    **context) -> Markup:
+    return Markup(loader(dirs)[template](**context).strip())
 
 
 def resolve(annotation) -> tuple[TypeHint, bool]:
@@ -68,6 +97,8 @@ def is_choice(hint) -> bool:
 class IFieldRenderer:
     """Interface for all field renderers."""
 
+    template: t.ClassVar[str] = ""
+
     def __init__(self, optional: bool, renderer=None):
         self.optional = optional
         self.renderer = renderer  # the owning FormRenderer, if any
@@ -76,13 +107,18 @@ class IFieldRenderer:
     def theme(self) -> Theme:
         return self.renderer.theme if self.renderer is not None else DEFAULT
 
+    def render_template(self, template: str, /, **context) -> Markup:
+        if self.renderer is not None:
+            return self.renderer.render_template(template, **context)
+        return render_template(template, theme=DEFAULT, **context)
+
     def render(self,
                name: str,
                field_info: FieldInfo,
                field_type: type,
                value: t.Any = None,
-               errors: dict[str, str] | None = None):
-        """Render the field at dot path `name`.
+               errors: dict[str, str] | None = None) -> Markup:
+        """Render the field at dot path `name`, returning its markup.
 
         `errors` maps full dot paths to messages; a renderer picks its
         own message via `errors.get(name)`.

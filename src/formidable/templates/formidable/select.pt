@@ -1,0 +1,7 @@
+<div class="${classes(theme.wrapper)}">
+  <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
+  <select class="${css}" id="field-${name}" multiple="${multiple}" name="${name}" required="${required}">
+    <option tal:repeat="option options" selected="${option.selected}" value="${option.value}">${option.title}</option>
+  </select>
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</div>

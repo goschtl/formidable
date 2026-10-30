@@ -13,6 +13,7 @@ Everything public is re-exported here; import from
 from formidable.renderers.base import (
     CSRF_FIELD,
     OPTIONAL,
+    TEMPLATES,
     TRUTHY,
     IFieldRenderer,
     classes,
@@ -20,6 +21,7 @@ from formidable.renderers.base import (
     field_title,
     field_value,
     is_choice,
+    render_template,
     resolve,
     widget_hint,
 )
@@ -48,7 +50,6 @@ from formidable.renderers.structures import (
     NUM_PLACEHOLDER,
     ListFieldRenderer,
     ModelFieldRenderer,
-    template,
 )
 from formidable.renderers.form import (
     BASIC_WIDGETS,
@@ -66,6 +67,7 @@ __all__ = [
     "NAMED_WIDGETS",
     "NUM_PLACEHOLDER",
     "OPTIONAL",
+    "TEMPLATES",
     "TRUTHY",
     "BoolFieldRenderer",
     "BoundField",
@@ -93,7 +95,7 @@ __all__ = [
     "field_title",
     "field_value",
     "is_choice",
+    "render_template",
     "resolve",
-    "template",
     "widget_hint",
 ]

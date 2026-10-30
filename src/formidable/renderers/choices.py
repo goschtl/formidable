@@ -8,12 +8,19 @@ an unknown option.
 
 import enum
 import typing as t
-from dominate.tags import label, input_, div, span, fieldset, legend, select, option
 from formidable.renderers.base import IFieldRenderer, classes, field_title
+
+
+class Option(t.NamedTuple):
+    value: str
+    title: str
+    selected: bool = False
 
 
 class SelectFieldRenderer(IFieldRenderer):
     """Renders `Literal[...]` and `enum.Enum` fields as a <select>."""
+
+    template = "formidable/select.pt"
 
     def choices(self, field_type) -> list[tuple[str, str]]:
         if isinstance(field_type, type) and issubclass(field_type, enum.Enum):
@@ -28,34 +35,23 @@ class SelectFieldRenderer(IFieldRenderer):
             value = value.value
         current = None if value is None else str(value)
 
-        attrs = {"name": name, "id": f"field-{name}"}
-        if not self.optional:
-            attrs["required"] = True
-        if css := classes(theme.select, theme.invalid if error else ""):
-            attrs["cls"] = css
-        widget = select(**attrs)
+        options = []
         # a blank option so nothing is preselected silently; an empty
         # submission is dropped by normalization ("missing" / default)
         if self.optional or current is None:
-            widget.add(option("", value=""))
-        for choice, title in self.choices(field_type):
-            option_attrs = {"value": choice}
-            if choice == current:
-                option_attrs["selected"] = True
-            widget.add(option(title, **option_attrs))
-
-        label_attrs = {"html_for": f"field-{name}"}
-        if theme.label:
-            label_attrs["cls"] = theme.label
-        wrapper_attrs = {"cls": theme.wrapper} if theme.wrapper else {}
-        field = div(
-            label(field_title(field_info, name), **label_attrs),
-            widget,
-            **wrapper_attrs,
+            options.append(Option("", ""))
+        options.extend(Option(choice, title, choice == current)
+                       for choice, title in self.choices(field_type))
+        return self.render_template(
+            self.template,
+            name=name,
+            title=field_title(field_info, name),
+            error=error,
+            options=options,
+            multiple=False,
+            required=not self.optional,
+            css=classes(theme.select, theme.invalid if error else ""),
         )
-        if error:
-            field.add(span(error, cls=classes("field-error", theme.error)))
-        return field
 
 
 class RadioFieldRenderer(SelectFieldRenderer):
@@ -68,6 +64,8 @@ class RadioFieldRenderer(SelectFieldRenderer):
     `json_schema_extra={"widget": "radio"}`.
     """
 
+    template = "formidable/radio.pt"
+
     def render(self, name, field_info, field_type, value=None, errors=None):
         theme = self.theme
         error = (errors or {}).get(name)
@@ -75,31 +73,16 @@ class RadioFieldRenderer(SelectFieldRenderer):
             value = value.value
         current = None if value is None else str(value)
 
-        legend_attrs = {"cls": theme.legend} if theme.legend else {}
-        group = fieldset(
-            legend(field_title(field_info, name), **legend_attrs),
-            cls=classes("field-radiogroup", theme.fieldset))
-        for index, (choice, title) in enumerate(self.choices(field_type)):
-            attrs = {
-                "type": "radio",
-                "name": name,
-                "value": choice,
-                "id": f"field-{name}-{index}",
-            }
-            if not self.optional:
-                attrs["required"] = True
-            if choice == current:
-                attrs["checked"] = True
-            if css := classes(theme.checkbox, theme.invalid if error else ""):
-                attrs["cls"] = css
-            group.add(div(
-                input_(**attrs),
-                label(title, html_for=f"field-{name}-{index}"),
-                cls="field-radio-option",
-            ))
-        if error:
-            group.add(span(error, cls=classes("field-error", theme.error)))
-        return group
+        return self.render_template(
+            self.template,
+            name=name,
+            title=field_title(field_info, name),
+            error=error,
+            options=[Option(choice, title, choice == current)
+                     for choice, title in self.choices(field_type)],
+            required=not self.optional,
+            css=classes(theme.checkbox, theme.invalid if error else ""),
+        )
 
 
 class MultiSelectFieldRenderer(SelectFieldRenderer):
@@ -125,27 +108,14 @@ class MultiSelectFieldRenderer(SelectFieldRenderer):
                 item = item.value
             current.add(str(item))
 
-        attrs = {"name": name, "id": f"field-{name}", "multiple": True}
-        if field_info.is_required():
-            attrs["required"] = True
-        if css := classes(theme.select, theme.invalid if error else ""):
-            attrs["cls"] = css
-        widget = select(**attrs)
-        for choice, title in self.choices(item_annotation):
-            option_attrs = {"value": choice}
-            if choice in current:
-                option_attrs["selected"] = True
-            widget.add(option(title, **option_attrs))
-
-        label_attrs = {"html_for": f"field-{name}"}
-        if theme.label:
-            label_attrs["cls"] = theme.label
-        wrapper_attrs = {"cls": theme.wrapper} if theme.wrapper else {}
-        field = div(
-            label(field_title(field_info, name), **label_attrs),
-            widget,
-            **wrapper_attrs,
+        return self.render_template(
+            self.template,
+            name=name,
+            title=field_title(field_info, name),
+            error=error,
+            options=[Option(choice, title, choice in current)
+                     for choice, title in self.choices(item_annotation)],
+            multiple=True,
+            required=field_info.is_required(),
+            css=classes(theme.select, theme.invalid if error else ""),
         )
-        if error:
-            field.add(span(error, cls=classes("field-error", theme.error)))
-        return field

@@ -4,9 +4,10 @@ from werkzeug.wrappers import Request
 
 from beartype.door import TypeHint
 
-from formidable.renderers import BoolFieldRenderer, FormRenderer
+from formidable.renderers import FormRenderer, StringFieldRenderer
 from formidable.themes import Theme, page
-from formidable.themes.bootstrap import BOOTSTRAP, BootstrapBoolRenderer
+from formidable.themes.bootstrap import BOOTSTRAP
+from formidable.themes.material import MATERIAL, MaterialStringRenderer
 from formidable.views import Form, trigger
 
 
@@ -21,7 +22,7 @@ class Schema(BaseModel):
 
 
 def test_default_theme_adds_no_classes():
-    html = FormRenderer()(Schema).render()
+    html = FormRenderer()(Schema)
     assert 'form-control' not in html
     assert '<form method="post" novalidate="novalidate">' in html
 
@@ -30,7 +31,7 @@ def test_theme_classes_are_applied():
     theme = Theme(form="my-form", wrapper="wrap", label="lbl",
                   input="inp", checkbox="check", fieldset="fs",
                   legend="lg", row_button="rowbtn", button="btn")
-    html = FormRenderer(theme=theme)(Schema).render()
+    html = FormRenderer(theme=theme)(Schema)
     assert '<form class="my-form" method="post" novalidate="novalidate">' in html
     assert '<div class="wrap">' in html
     assert '<label class="lbl" for="field-name">Your Name</label>' in html
@@ -48,7 +49,7 @@ def test_theme_marks_invalid_inputs_and_errors():
         Schema,
         values={"name": "x"},
         errors={"name": "Bad value"},
-    ).render()
+    )
     assert 'class="inp is-invalid"' in html
     assert '<span class="field-error feedback">Bad value</span>' in html
     # untouched fields keep the plain input class
@@ -58,7 +59,7 @@ def test_theme_marks_invalid_inputs_and_errors():
 def test_theme_reaches_nested_rows():
     theme = Theme(input="inp")
     html = FormRenderer(theme=theme)(
-        Schema, values={"users": [{"id": "1"}]}).render()
+        Schema, values={"users": [{"id": "1"}]})
     assert 'name="users.0.id"' in html
     assert html.count('class="inp"') >= 2  # top-level and nested input
 
@@ -83,7 +84,7 @@ def test_trigger_buttons_are_themed():
 
 
 def test_theme_widgets_override_structure():
-    html = FormRenderer(theme=BOOTSTRAP)(Schema).render()
+    html = FormRenderer(theme=BOOTSTRAP)(Schema)
     # the Bootstrap checkbox structure: .form-check with label after input
     assert '<div class="mb-3 form-check">' in html
     assert '<label class="form-check-label" for="field-agree">' in html
@@ -91,24 +92,24 @@ def test_theme_widgets_override_structure():
 
 def test_explicit_widgets_beat_theme_widgets():
     renderer = FormRenderer(
-        theme=BOOTSTRAP, widgets={TypeHint(bool): BoolFieldRenderer})
-    assert renderer.widgets[TypeHint(bool)] is BoolFieldRenderer
+        theme=MATERIAL, widgets={TypeHint(str): StringFieldRenderer})
+    assert renderer.widgets[TypeHint(str)] is StringFieldRenderer
 
 
 def test_theme_widgets_beat_defaults():
-    renderer = FormRenderer(theme=BOOTSTRAP)
-    assert renderer.widgets[TypeHint(bool)] is BootstrapBoolRenderer
+    renderer = FormRenderer(theme=MATERIAL)
+    assert renderer.widgets[TypeHint(str)] is MaterialStringRenderer
 
 
 def test_material_input_structure():
     from formidable.themes.material import MATERIAL
 
-    html = FormRenderer(theme=MATERIAL)(Schema, values={"name": "Jane"}).render()
+    html = FormRenderer(theme=MATERIAL)(Schema, values={"name": "Jane"})
     # label follows the input inside .input-field, active over a value
     assert '<div class="input-field">' in html
     assert ('<input class="validate" id="field-name" name="name" required="required"'
             ' type="text" value="Jane">'
-            '\n    <label class="active" for="field-name">Your Name</label>') in html
+            '\n  <label class="active" for="field-name">Your Name</label>') in html
 
 
 def test_material_checkbox_and_file_structure():
@@ -121,7 +122,7 @@ def test_material_checkbox_and_file_structure():
         agree: bool
         doc: UploadedFile
 
-    html = FormRenderer(theme=MATERIAL)(WithFile).render()
+    html = FormRenderer(theme=MATERIAL)(WithFile)
     # checkbox: label wraps input + text span
     assert '<input class="filled-in"' in html
     assert "<span>agree</span>" in html
@@ -135,7 +136,7 @@ def test_material_marks_errors():
     from formidable.themes.material import MATERIAL
 
     html = FormRenderer(theme=MATERIAL)(
-        Schema, values={"name": ""}, errors={"name": "Required"}).render()
+        Schema, values={"name": ""}, errors={"name": "Required"})
     assert 'class="validate invalid"' in html
     assert '<span class="field-error helper-text red-text">Required</span>' in html
 
@@ -146,7 +147,7 @@ def test_site_wide_theme_registration():
     previous = themes.use(BOOTSTRAP)
     try:
         # a bare renderer picks up the registered theme
-        html = FormRenderer()(Schema).render()
+        html = FormRenderer()(Schema)
         assert "form-control" in html
 
         # a Form without its own theme uses it too

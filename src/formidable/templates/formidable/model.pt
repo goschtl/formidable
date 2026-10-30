@@ -1,0 +1,5 @@
+<fieldset class="${classes('field-model', theme.fieldset)}">
+  <legend class="${classes(theme.legend)}">${title}</legend>
+  <tal:field repeat="field fields">${field}</tal:field>
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</fieldset>

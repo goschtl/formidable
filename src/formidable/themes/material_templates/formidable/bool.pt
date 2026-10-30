@@ -1,0 +1,7 @@
+<p>
+  <label>
+    <input checked="${checked}" class="${css}" id="field-${name}" name="${name}" type="checkbox" value="${value}">
+    <span>${title}</span>
+  </label>
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</p>

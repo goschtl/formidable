@@ -1,0 +1,5 @@
+<div class="${classes(theme.wrapper)}">
+  <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
+  <textarea class="${css}" id="field-${name}" name="${name}" required="${required}">${value}</textarea>
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</div>

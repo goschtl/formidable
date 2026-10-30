@@ -1,0 +1,1 @@
+<span tal:condition="hint" class="${classes('field-hint', theme.hint)}">${hint}</span>

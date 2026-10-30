@@ -1,6 +1,7 @@
 import datetime
 import enum
 import typing as t
+from pathlib import Path
 from autoroutes import Routes as Autoroutes
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
@@ -14,7 +15,6 @@ from formidable import i18n, themes
 from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
 from formidable.themes.material import MATERIAL
-from dominate.tags import div
 
 
 themes.use(BOOTSTRAP)  # the site-wide default
@@ -32,10 +32,7 @@ class CustomFieldRenderer(StringFieldRenderer):
     """A custom widget must still render an input named `name`,
     otherwise the field is never submitted and validation always fails."""
 
-    def render(self, name, field_info, field_type, value=None, errors=None):
-        field = super().render(name, field_info, field_type, value=value, errors=errors)
-        field.add(div("I am a custom widget.", cls="custom-hint"))
-        return field
+    template = "custom_input.pt"
 
 
 class User(BaseModel):
@@ -97,6 +94,7 @@ class Index(Form):
     def get_renderer(self, request):
         return FormRenderer(
             theme=self.get_theme(request),
+            templates=[Path(__file__).parent / "ex_templates"],
             custom_widgets={
                 "name": CustomFieldRenderer,
                 # same choice source as the select, radio markup

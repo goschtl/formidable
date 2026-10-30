@@ -174,9 +174,7 @@ class Form:
 
     def render_response(self, html_form, request) -> Response:
         """Hook: wrap the rendered form in a full page if desired."""
-        body = html_form.render() if hasattr(html_form, "render") \
-            else str(html_form)
-        return Response(body, mimetype="text/html")
+        return Response(str(html_form), mimetype="text/html")
 
     def GET(self, request):
         return self.render_response(self.get_form(request), request)

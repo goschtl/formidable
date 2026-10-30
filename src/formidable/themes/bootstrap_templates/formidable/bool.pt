@@ -1,0 +1,5 @@
+<div class="mb-3 form-check">
+  <input checked="${checked}" class="${css}" id="field-${name}" name="${name}" type="checkbox" value="${value}">
+  <label class="form-check-label" for="field-${name}">${title}</label>
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</div>

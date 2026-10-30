@@ -1,0 +1,9 @@
+<fieldset class="${classes('field-list', theme.fieldset)}">
+  <legend class="${classes(theme.legend)}">${title}</legend>
+  <div class="field-list-items">
+    <tal:row repeat="row rows">${row}</tal:row>
+  </div>
+  <template>${blank_row}</template>
+  <button class="${classes('formidable-add-row', theme.row_button)}" type="button">Add</button>
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</fieldset>

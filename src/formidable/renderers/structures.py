@@ -3,13 +3,8 @@
 import typing as t
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from dominate.tags import div, span, fieldset, legend, button, html_tag
 from formidable.renderers.base import (
-    IFieldRenderer, classes, default_value, field_title)
-
-
-class template(html_tag):
-    """The HTML5 <template> tag, missing from dominate."""
+    IFieldRenderer, default_value, field_title)
 
 
 INDEX_PLACEHOLDER = "__index__"
@@ -47,21 +42,24 @@ LIST_SCRIPT = """
 class ModelFieldRenderer(IFieldRenderer):
     """Renders a nested BaseModel as a fieldset, one widget per field."""
 
+    template = "formidable/model.pt"
+
     def render(self, name, field_info, field_type, value=None, errors=None):
-        theme = self.theme
-        legend_attrs = {"cls": theme.legend} if theme.legend else {}
-        fs = fieldset(
-            legend(field_title(field_info, name), **legend_attrs),
-            cls=classes("field-model", theme.fieldset))
-        for sub_name, sub_field in field_type.model_fields.items():
-            fs.add(self.renderer.render_field(
+        # recursion stays in Python: widget dispatch needs the types
+        fields = [
+            self.renderer.render_field(
                 f"{name}.{sub_name}", sub_field,
                 value=self.subvalue(value, sub_name, sub_field),
                 errors=errors,
-            ))
-        if error := (errors or {}).get(name):
-            fs.add(span(error, cls=classes("field-error", theme.error)))
-        return fs
+            )
+            for sub_name, sub_field in field_type.model_fields.items()
+        ]
+        return self.render_template(
+            self.template,
+            title=field_title(field_info, name),
+            fields=fields,
+            error=(errors or {}).get(name),
+        )
 
     @staticmethod
     def subvalue(container, key, model_field):
@@ -76,8 +74,10 @@ class ListFieldRenderer(IFieldRenderer):
     """Renders `list[X]` as a fieldset of indexed sub-widgets with
     client-side add/remove row buttons (a <template> holds the blank row)."""
 
+    template = "formidable/list.pt"
+    item_template: t.ClassVar[str] = "formidable/list_item.pt"
+
     def render(self, name, field_info, field_type, value=None, errors=None):
-        theme = self.theme
         title = field_title(field_info, name)
         args = t.get_args(field_type)
         item_annotation = args[0] if args else str
@@ -85,30 +85,21 @@ class ListFieldRenderer(IFieldRenderer):
         def item_row(index, num, item):
             item_info = FieldInfo.from_annotation(item_annotation)
             item_info.title = f"{title} #{num}"
-            return div(
-                self.renderer.render_field(
+            return self.render_template(
+                self.item_template,
+                index=index,
+                field=self.renderer.render_field(
                     f"{name}.{index}", item_info, value=item, errors=errors),
-                button("Remove", type="button",
-                       cls=classes("formidable-remove-row", theme.row_button)),
-                cls="field-list-item",
-                data_index=str(index),
             )
 
-        items = div(cls="field-list-items")
-        for index, item in enumerate(value or []):
-            items.add(item_row(index, index + 1, item))
-
-        legend_attrs = {"cls": theme.legend} if theme.legend else {}
-        fs = fieldset(
-            legend(title, **legend_attrs),
-            items,
-            template(item_row(INDEX_PLACEHOLDER, NUM_PLACEHOLDER, None)),
-            button("Add", type="button",
-                   cls=classes("formidable-add-row", theme.row_button)),
-            cls=classes("field-list", theme.fieldset),
-        )
-        if error := (errors or {}).get(name):
-            fs.add(span(error, cls=classes("field-error", theme.error)))
+        rows = [item_row(index, index + 1, item)
+                for index, item in enumerate(value or [])]
         if self.renderer is not None:
             self.renderer.needs_script = True
-        return fs
+        return self.render_template(
+            self.template,
+            title=title,
+            rows=rows,
+            blank_row=item_row(INDEX_PLACEHOLDER, NUM_PLACEHOLDER, None),
+            error=(errors or {}).get(name),
+        )

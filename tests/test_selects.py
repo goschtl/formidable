@@ -21,24 +21,24 @@ class Schema(BaseModel):
 
 
 def test_literal_renders_select_with_options():
-    html = FormRenderer()(Schema).render()
+    html = FormRenderer()(Schema)
     assert '<select id="field-color" name="color" required="required">' in html
     assert '<option value="red">red</option>' in html
     assert '<option value="green">green</option>' in html
 
 
 def test_unselected_field_gets_blank_option():
-    html = FormRenderer()(Schema).render()
+    html = FormRenderer()(Schema)
     assert '<option value=""></option>' in html
 
 
 def test_submitted_value_is_selected():
-    html = FormRenderer()(Schema, values={"color": "green"}).render()
+    html = FormRenderer()(Schema, values={"color": "green"})
     assert '<option selected="selected" value="green">green</option>' in html
 
 
 def test_enum_renders_values_and_titles():
-    html = FormRenderer()(Schema).render()
+    html = FormRenderer()(Schema)
     assert '<option value="happy">Happy</option>' in html
     assert '<option value="over the moon">Over The Moon</option>' in html
     # optional: no required attribute on the select
@@ -49,21 +49,21 @@ def test_enum_default_instance_is_selected():
     class WithDefault(BaseModel):
         mood: Mood = Mood.happy
 
-    html = FormRenderer()(WithDefault).render()
+    html = FormRenderer()(WithDefault)
     assert '<option selected="selected" value="happy">Happy</option>' in html
 
 
 def test_select_theme_and_error_classes():
     theme = Theme(select="form-select", invalid="is-invalid", error="feedback")
     html = FormRenderer(theme=theme)(
-        Schema, errors={"color": "Bad choice"}).render()
+        Schema, errors={"color": "Bad choice"})
     assert '<select class="form-select is-invalid"' in html
     assert '<span class="field-error feedback">Bad choice</span>' in html
 
 
 def test_radio_group_renders_options():
     renderer = FormRenderer(custom_widgets={"color": RadioFieldRenderer})
-    html = renderer(Schema).render()
+    html = renderer(Schema)
     assert '<fieldset class="field-radiogroup">' in html
     assert '<legend>Color</legend>' in html
     assert ('<input id="field-color-0" name="color" required="required" '
@@ -74,7 +74,7 @@ def test_radio_group_renders_options():
 def test_radio_round_trips_value_and_errors():
     renderer = FormRenderer(custom_widgets={"color": RadioFieldRenderer})
     html = renderer(
-        Schema, values={"color": "green"}, errors={"color": "Bad"}).render()
+        Schema, values={"color": "green"}, errors={"color": "Bad"})
     assert ('<input checked="checked" id="field-color-1" name="color" '
             'required="required" type="radio" value="green">') in html
     assert '<span class="field-error">Bad</span>' in html
@@ -82,7 +82,7 @@ def test_radio_round_trips_value_and_errors():
 
 def test_radio_enum_source():
     renderer = FormRenderer(custom_widgets={"mood": RadioFieldRenderer})
-    html = renderer(Schema, values={"mood": Mood.happy}).render()
+    html = renderer(Schema, values={"mood": Mood.happy})
     assert '<label for="field-mood-0">Happy</label>' in html
     # optional group: no required attribute
     assert ('<input checked="checked" id="field-mood-0" name="mood" '

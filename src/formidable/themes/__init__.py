@@ -3,8 +3,9 @@
 A Theme bundles everything a CSS framework integration needs:
 
 * class names the built-in renderers apply,
-* structural widget overrides (`widgets`) for markup a framework
-  requires (e.g. Bootstrap's form-check checkboxes),
+* template overrides (`templates`) for markup a framework requires
+  (e.g. Bootstrap's form-check checkboxes),
+* widget overrides (`widgets`) when a type needs its own renderer,
 * asset URLs (`stylesheets`, `scripts`) consumed by `page()`.
 
 Concrete themes live in their own submodule (one plugin per module,
@@ -35,7 +36,8 @@ class Theme:
     button: str = ""        # trigger (submit) buttons
     row_button: str = ""    # the JS add/remove row buttons
     container: str = ""     # the <main> wrapper used by page()
-    widgets: t.Mapping = ()          # structural widget overrides
+    templates: tuple[str, ...] = ()  # folders searched before the built-ins
+    widgets: t.Mapping = ()          # widget overrides by type
     stylesheets: tuple[str, ...] = ()
     scripts: tuple[str, ...] = ()
 
@@ -68,8 +70,7 @@ def page(html_form, theme: Theme = DEFAULT, title: str = "") -> str:
     scripts = "\n  ".join(
         f'<script src="{src}"></script>' for src in theme.scripts)
     main_attr = f' class="{theme.container}"' if theme.container else ""
-    body = html_form.render() if hasattr(html_form, "render") \
-        else str(html_form)
+    body = str(html_form)
     return f"""<!doctype html>
 <html>
 <head>

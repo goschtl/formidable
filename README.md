@@ -163,7 +163,7 @@ def nickname_required_when_agreeing(self):
 ### Themes as plugins
 
 A `Theme` bundles everything a CSS framework needs: class names for
-every element, structural widget overrides, asset URLs. Bootstrap 5 and
+every element, template and widget overrides, asset URLs. Bootstrap 5 and
 Materialize ship as plugins; a new theme is a ~30-line module.
 
 ```python
@@ -237,8 +237,53 @@ FormRenderer(
 ```
 
 A widget receives `(name, field_info, field_type, value, errors)` and
-must render an input under its `name` — extending a built-in renderer
-is the easiest way to stay correct.
+returns markup (`markupsafe.Markup`). It must render an input under its
+`name` — extending a built-in renderer is the easiest way to stay
+correct.
+
+### Templates
+
+All markup lives in [Chameleon](https://chameleon.readthedocs.io) page
+templates, rendered by [chameleon-rs](https://mkennedy.codes/docs/chameleon-rs/),
+under `src/formidable/templates/formidable/`:
+
+```html
+<div class="${classes(theme.wrapper)}">
+  <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
+  <input class="${css}" id="field-${name}" name="${name}" required="${required}"
+         step="${step}" type="${input_type}" value="${value}">
+  ${render_partial('formidable/error.pt', error=error, theme=theme)}
+</div>
+```
+
+To change the markup, copy a template and keep its relative path. Own
+templates beat the theme's, which beat the built-ins:
+
+```python
+FormRenderer(templates=["myapp/templates"])     # myapp/templates/formidable/input.pt
+Theme(templates=("mytheme/templates",))         # the same, as part of a theme
+```
+
+A renderer picks its template by name, so a new widget can be a single
+line of Python plus a template:
+
+```python
+class StarsRenderer(IntFieldRenderer):
+    template = "stars.pt"                       # myapp/templates/stars.pt
+```
+
+Values are HTML-escaped, except for `Markup` (rendered fields and
+partials). Avoid `structure:` for anything a user can influence. Empty
+attributes (`None`) disappear, `required`, `checked` and friends are
+boolean attributes, and `classes(...)` merges class names, skipping
+empty ones. A template sees the variables its renderer passes plus
+`theme`; a partial only what is handed to it.
+
+formidable never calls `chameleon_rs.configure()`, that setting belongs
+to your application. Two consequences if you do use it: a
+`formidable/...` file in your `template_folder` overrides the partial of
+the same name, and `partial_search="registered"` is not supported, as it
+hides formidable's own partials.
 
 ## The hooks at a glance
 
@@ -263,5 +308,5 @@ uvx ruff check src/ tests/ ex.py
 
 CI runs both on Python 3.12 and 3.13 (GitHub Actions).
 
-Requires Python ≥ 3.12. Built on Pydantic v2, dominate, beartype and
+Requires Python ≥ 3.12. Built on Pydantic v2, chameleon-rs, beartype and
 werkzeug.

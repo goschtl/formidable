@@ -4,17 +4,16 @@ bound (template-driven) rendering."""
 import datetime
 import typing as t
 from decimal import Decimal
+from os import PathLike
 from pydantic import BaseModel, SecretStr
 from pydantic.fields import FieldInfo
-from dominate.tags import form, div, span, button, input_, script
-from dominate.util import raw
 from beartype.door import TypeHint
 from markupsafe import Markup
 from werkzeug.datastructures import FileStorage
 from formidable.themes import Theme, current
 from formidable.renderers.base import (
-    CSRF_FIELD, IFieldRenderer, classes, field_title, field_value,
-    is_choice, resolve, widget_hint)
+    CSRF_FIELD, IFieldRenderer, field_title, field_value,
+    is_choice, render_template, resolve, widget_hint)
 from formidable.renderers.inputs import (
     BoolFieldRenderer, DateFieldRenderer, DateTimeFieldRenderer,
     EmailFieldRenderer, FileFieldRenderer, FloatFieldRenderer,
@@ -57,13 +56,16 @@ class FormRenderer:
                  widgets: dict[TypeHint, type[IFieldRenderer]] | None = None,
                  custom_widgets: dict[str, type[IFieldRenderer]] | None = None,
                  theme: Theme | None = None,
-                 novalidate: bool = True):
+                 novalidate: bool = True,
+                 templates: t.Iterable[str | PathLike] = ()):
         if theme is None:
             theme = current()  # the theme registered site-wide
         # explicit `widgets` beat the theme's, which beat the defaults
         self.widgets = {**BASIC_WIDGETS, **dict(theme.widgets), **(widgets or {})}
         self.custom_widgets = {**(custom_widgets or {})}
         self.theme = theme
+        # own templates beat the theme's, which beat the built-ins
+        self.template_dirs = (*map(str, templates), *theme.templates)
         # Server-side validation is the source of truth: `novalidate`
         # stops the browser from blocking submits, while the `required`
         # attributes stay in the markup for accessibility and styling.
@@ -94,20 +96,25 @@ class FormRenderer:
             return ModelFieldRenderer
         return None
 
-    def render_button(self, btn):
-        attrs = {"name": btn.type, "value": btn.name}
-        if self.theme.button:
-            attrs["cls"] = self.theme.button
-        return button(btn.title, **attrs)
+    def render_template(self, template: str, /, **context) -> Markup:
+        return render_template(template, dirs=self.template_dirs,
+                               theme=self.theme, **context)
 
-    def render_form_errors(self, errors: dict[str, str]):
+    def render_button(self, btn) -> Markup:
+        return self.render_template(
+            "formidable/button.pt",
+            name=btn.type, value=btn.name, title=btn.title)
+
+    def render_form_errors(self, errors: dict[str, str]) -> Markup | None:
         """Model-level errors (cross-field validators) have no field to
         attach to; they render in their own block."""
         if form_error := errors.get(""):
-            return div(
-                span(form_error, cls=classes("field-error", self.theme.error)),
-                cls="form-errors")
+            return self.render_template(
+                "formidable/form_errors.pt", error=form_error)
         return None
+
+    def render_script(self) -> Markup:
+        return self.render_template("formidable/script.pt", code=LIST_SCRIPT)
 
     def bind(self,
              model_cls: type[BaseModel],
@@ -127,45 +134,43 @@ class FormRenderer:
         token, optional = resolve(model_field.annotation)
         widget = self.dispatch(name, token, model_field)
         if widget is None:
-            return div(f"⚠ No renderer for type: {model_field.annotation}")
+            return self.render_template(
+                "formidable/unknown.pt", annotation=model_field.annotation)
         renderer: IFieldRenderer = widget(optional, self)
         return renderer.render(
             name, model_field, token.hint, value=value, errors=errors)
 
-    def csrf_input(self, csrf_token: str):
-        return input_(type="hidden", name=CSRF_FIELD, value=csrf_token)
+    def csrf_input(self, csrf_token: str) -> Markup:
+        return self.render_template(
+            "formidable/csrf.pt", name=CSRF_FIELD, value=csrf_token)
 
     def __call__(self,
                  model_cls: type[BaseModel],
                  values: dict[str, t.Any] | None = None,
                  errors: dict[str, str] | None = None,
                  buttons: t.Iterable = (),
-                 csrf_token: str | None = None):
+                 csrf_token: str | None = None) -> Markup:
         values = values or {}
         errors = errors or {}
         self.needs_script = False
         self.needs_multipart = False
-        form_attrs = {"method": "post"}
-        if self.novalidate:
-            form_attrs["novalidate"] = True
-        if self.theme.form:
-            form_attrs["cls"] = self.theme.form
-        f = form(**form_attrs)
-        if csrf_token:
-            f.add(self.csrf_input(csrf_token))
-        # model-level errors render at the top of the form
-        if form_errors := self.render_form_errors(errors):
-            f.add(form_errors)
-        for name, model_field in model_cls.model_fields.items():
-            value = field_value(name, model_field, values)
-            f.add(self.render_field(name, model_field, value=value, errors=errors))
-        for btn in buttons:
-            f.add(self.render_button(btn))
-        if self.needs_multipart:
-            f["enctype"] = "multipart/form-data"
-        if self.needs_script:
-            f.add(script(raw(LIST_SCRIPT)))
-        return f
+        # fields first: they decide on the enctype and the row script
+        fields = [
+            self.render_field(
+                name, model_field,
+                value=field_value(name, model_field, values), errors=errors)
+            for name, model_field in model_cls.model_fields.items()
+        ]
+        return self.render_template(
+            "formidable/form.pt",
+            enctype="multipart/form-data" if self.needs_multipart else None,
+            novalidate=self.novalidate,
+            csrf=self.csrf_input(csrf_token) if csrf_token else None,
+            form_errors=self.render_form_errors(errors),
+            fields=fields,
+            buttons=[self.render_button(btn) for btn in buttons],
+            script=self.render_script() if self.needs_script else None,
+        )
 
 
 class BoundField:
@@ -223,7 +228,7 @@ class BoundForm:
         for name, model_field in model_cls.model_fields.items():
             value = field_value(name, model_field, self.values)
             html = renderer.render_field(
-                name, model_field, value=value, errors=self.errors).render()
+                name, model_field, value=value, errors=self.errors)
             self._fields[name] = BoundField(
                 name, field_title(model_field, name), html)
         self.needs_multipart = renderer.needs_multipart
@@ -256,8 +261,7 @@ class BoundForm:
 
     def form_errors(self) -> Markup:
         """The model-level error block, or empty."""
-        block = self.renderer.render_form_errors(self.errors)
-        return Markup(block.render()) if block is not None else Markup("")
+        return self.renderer.render_form_errors(self.errors) or Markup("")
 
     def error(self, name: str) -> str:
         """The raw error message for a field path, or empty."""
@@ -266,19 +270,17 @@ class BoundForm:
     def csrf(self) -> Markup:
         """The hidden CSRF input, or empty. Included in buttons()."""
         if self.csrf_token:
-            return Markup(self.renderer.csrf_input(self.csrf_token).render())
+            return self.renderer.csrf_input(self.csrf_token)
         return Markup("")
 
     def buttons(self) -> Markup:
         """The form's trigger buttons (plus the CSRF token), themed."""
         parts = [self.csrf()] if self.csrf_token else []
-        parts.extend(
-            self.renderer.render_button(btn).render()
-            for btn in self._buttons)
-        return Markup("\n".join(parts))
+        parts.extend(self.renderer.render_button(btn) for btn in self._buttons)
+        return Markup("\n").join(parts)
 
     def scripts(self) -> Markup:
         """The row add/remove script, when a list field was rendered."""
         if self.needs_script:
-            return Markup(script(raw(LIST_SCRIPT)).render())
+            return self.renderer.render_script()
         return Markup("")

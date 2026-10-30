@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from beartype.door import TypeHint
-from dominate.tags import div
+from markupsafe import Markup
 
 from formidable.renderers import (
     BASIC_WIDGETS,
@@ -31,19 +31,19 @@ def test_resolve_optional_union():
 
 
 def test_browser_validation_is_off_by_default():
-    html = FormRenderer()(Schema).render()
+    html = FormRenderer()(Schema)
     assert 'novalidate="novalidate"' in html
     # required attributes stay for accessibility and styling
     assert 'required="required"' in html
 
 
 def test_browser_validation_can_be_reenabled():
-    html = FormRenderer(novalidate=False)(Schema).render()
+    html = FormRenderer(novalidate=False)(Schema)
     assert "novalidate" not in html
 
 
 def test_render_basic_form():
-    html = FormRenderer()(Schema).render()
+    html = FormRenderer()(Schema)
     assert '<input id="field-name" name="name" required="required" type="text">' in html
     assert '<input id="field-age" name="age" required="required" type="number">' in html
     assert '<input id="field-agree" name="agree" type="checkbox" value="true">' in html
@@ -51,18 +51,18 @@ def test_render_basic_form():
 
 
 def test_optional_field_not_required():
-    html = FormRenderer()(Schema).render()
+    html = FormRenderer()(Schema)
     assert '<input id="field-nickname" name="nickname" type="text">' in html
 
 
 def test_values_are_rendered():
-    html = FormRenderer()(Schema, values={"name": "Jane", "agree": "true"}).render()
+    html = FormRenderer()(Schema, values={"name": "Jane", "agree": "true"})
     assert 'value="Jane"' in html
     assert 'checked="checked"' in html
 
 
 def test_errors_are_rendered():
-    html = FormRenderer()(Schema, errors={"age": "Field required"}).render()
+    html = FormRenderer()(Schema, errors={"age": "Field required"})
     assert '<span class="field-error">Field required</span>' in html
 
 
@@ -70,16 +70,16 @@ def test_unknown_type_renders_warning():
     class WithMapping(BaseModel):
         items: dict[str, str]
 
-    html = FormRenderer()(WithMapping).render()
+    html = FormRenderer()(WithMapping)
     assert "No renderer for type" in html
 
 
 def test_custom_widget_by_field_name():
     class Custom(IFieldRenderer):
         def render(self, name, field_info, field_type, value=None, errors=None):
-            return div("custom!")
+            return Markup("<div>custom!</div>")
 
-    html = FormRenderer(custom_widgets={"name": Custom})(Schema).render()
+    html = FormRenderer(custom_widgets={"name": Custom})(Schema)
     assert "custom!" in html
     assert 'id="field-name"' not in html
 
@@ -100,7 +100,7 @@ class Nested(BaseModel):
 
 
 def test_nested_model_renders_fieldset_with_dot_paths():
-    html = FormRenderer()(Nested).render()
+    html = FormRenderer()(Nested)
     assert "<legend>Address</legend>" in html
     assert 'name="address.street"' in html
     assert 'name="address.city"' in html
@@ -111,7 +111,7 @@ def test_list_of_models_renders_indexed_items():
     html = FormRenderer()(
         Nested,
         values={"address": {}, "users": [{"name": "Bob"}, {}]},
-    ).render()
+    )
     assert "<legend>Users #1</legend>" in html
     assert "<legend>Users #2</legend>" in html
     assert 'name="users.0.name"' in html
@@ -126,7 +126,7 @@ def test_list_of_scalars_renders_indexed_inputs():
     class WithTags(BaseModel):
         tags: list[str] = Field(default_factory=list, title="Tags")
 
-    html = FormRenderer()(WithTags, values={"tags": ["a", "b"]}).render()
+    html = FormRenderer()(WithTags, values={"tags": ["a", "b"]})
     assert 'name="tags.0"' in html
     assert 'value="a"' in html
     assert 'name="tags.1"' in html
@@ -138,12 +138,12 @@ def test_nested_errors_land_on_the_right_input():
         Nested,
         values={"address": {}, "users": [{"id": "xx"}]},
         errors={"users.0.id": "Not an integer"},
-    ).render()
+    )
     assert '<span class="field-error">Not an integer</span>' in html
 
 
 def test_list_ships_template_and_row_buttons():
-    html = FormRenderer()(Nested).render()
+    html = FormRenderer()(Nested)
     # a blank-row template with index placeholders, plus JS-driven buttons
     assert "<template>" in html
     assert 'name="users.__index__.id"' in html
@@ -153,12 +153,12 @@ def test_list_ships_template_and_row_buttons():
 
 
 def test_row_script_injected_only_for_forms_with_lists():
-    assert "__formidable_rows" in FormRenderer()(Nested).render()
-    assert "__formidable_rows" not in FormRenderer()(Schema).render()
+    assert "__formidable_rows" in FormRenderer()(Nested)
+    assert "__formidable_rows" not in FormRenderer()(Schema)
 
 
 def test_rendered_rows_carry_their_index():
-    html = FormRenderer()(Nested, values={"address": {}, "users": [{}, {}]}).render()
+    html = FormRenderer()(Nested, values={"address": {}, "users": [{}, {}]})
     assert 'data-index="0"' in html
     assert 'data-index="1"' in html
 
@@ -170,7 +170,7 @@ def test_model_default_instance_prefills_inputs():
             title="Address",
         )
 
-    html = FormRenderer()(WithDefault).render()
+    html = FormRenderer()(WithDefault)
     assert 'value="Main St"' in html
     assert 'value="Springfield"' in html
 
