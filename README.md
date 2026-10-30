@@ -397,7 +397,7 @@ uvx ruff check src/ tests/ ex.py
 cd tests/js && npm install && npm test     # the browser scripts
 ```
 
-CI runs both on Python 3.12 and 3.13 (GitHub Actions).
+CI runs both on Python 3.12, 3.13 and 3.14 (GitHub Actions).
 
 Requires Python ≥ 3.12. Built on Pydantic v2, chameleon-rs, beartype and
 werkzeug.
