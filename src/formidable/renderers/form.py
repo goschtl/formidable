@@ -6,29 +6,55 @@ import datetime
 import typing as t
 from decimal import Decimal
 from os import PathLike
-from pydantic import BaseModel, SecretStr
-from pydantic.fields import FieldInfo
+
 from beartype.door import TypeHint
 from markupsafe import Markup
+from pydantic import BaseModel, SecretStr
+from pydantic.fields import FieldInfo
 from werkzeug.datastructures import FileStorage
+
 from formidable import i18n
 from formidable.conditions import is_visible
+from formidable.renderers.base import (
+    CONDITIONS_SCRIPT,
+    CSRF_FIELD,
+    MASK_SCRIPT,
+    UPLOAD_SCRIPTS,
+    UPLOAD_STYLE,
+    IFieldRenderer,
+    field_title,
+    field_value,
+    is_choice,
+    render_template,
+    resolve,
+    widget_hint,
+)
+from formidable.renderers.choices import (
+    MultiSelectFieldRenderer,
+    RadioFieldRenderer,
+    SelectFieldRenderer,
+)
+from formidable.renderers.inputs import (
+    AsyncFileFieldRenderer,
+    BoolFieldRenderer,
+    DateFieldRenderer,
+    DateTimeFieldRenderer,
+    EmailFieldRenderer,
+    FileFieldRenderer,
+    FloatFieldRenderer,
+    IntFieldRenderer,
+    PasswordFieldRenderer,
+    StringFieldRenderer,
+    TextareaFieldRenderer,
+    TimeFieldRenderer,
+)
+from formidable.renderers.structures import (
+    LIST_SCRIPT,
+    ListFieldRenderer,
+    ModelFieldRenderer,
+)
 from formidable.themes import Theme, current
 from formidable.ui import NO_UI, UIField, ui_path
-from formidable.renderers.base import (
-    CONDITIONS_SCRIPT, CSRF_FIELD, MASK_SCRIPT, UPLOAD_SCRIPTS, UPLOAD_STYLE,
-    IFieldRenderer, field_title, field_value,
-    is_choice, render_template, resolve, widget_hint)
-from formidable.renderers.inputs import (
-    AsyncFileFieldRenderer, BoolFieldRenderer, DateFieldRenderer, DateTimeFieldRenderer,
-    EmailFieldRenderer, FileFieldRenderer, FloatFieldRenderer,
-    IntFieldRenderer, PasswordFieldRenderer, StringFieldRenderer,
-    TextareaFieldRenderer, TimeFieldRenderer)
-from formidable.renderers.choices import (
-    MultiSelectFieldRenderer, RadioFieldRenderer, SelectFieldRenderer)
-from formidable.renderers.structures import (
-    LIST_SCRIPT, ListFieldRenderer, ModelFieldRenderer)
-
 
 BASIC_WIDGETS = {
     TypeHint(str): StringFieldRenderer,
@@ -125,11 +151,11 @@ class FormRenderer:
         if hint_name is None and model_field is not None:
             hint_name = widget_hint(model_field)
         # a checkbox with options is a group: left to the type dispatch
-        if hint_name and not (hint_name == "checkbox" and ui.options):
-            if named := NAMED_WIDGETS.get(hint_name):
-                if named is FileFieldRenderer and self.uploads_apart(token):
-                    return AsyncFileFieldRenderer
-                return named
+        is_group = hint_name == "checkbox" and ui.options
+        if hint_name and not is_group and (named := NAMED_WIDGETS.get(hint_name)):
+            if named is FileFieldRenderer and self.uploads_apart(token):
+                return AsyncFileFieldRenderer
+            return named
         if widget := self.widgets.get(token):
             return widget
         hint = token.hint

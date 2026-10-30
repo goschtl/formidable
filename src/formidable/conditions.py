@@ -9,9 +9,10 @@ import enum
 import math
 import re
 import typing as t
-from pydantic import BaseModel
-from formidable.ui import NO_UI, UIField, ui_path
 
+from pydantic import BaseModel
+
+from formidable.ui import NO_UI, UIField, ui_path
 
 ROW = re.compile(r"^(.*\.\d+)(?:\.|$)")
 

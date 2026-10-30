@@ -9,8 +9,8 @@ import json
 import re
 import typing as t
 from pathlib import Path
-from pydantic import BaseModel, ConfigDict, Field
 
+from pydantic import BaseModel, ConfigDict, Field
 
 ROW_INDEX = re.compile(r"\.(\d+|__index__)(?=\.|$)")
 

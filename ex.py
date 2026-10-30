@@ -5,24 +5,29 @@ import secrets
 import tempfile
 import typing as t
 from pathlib import Path
+
 from autoroutes import Routes as Autoroutes
+from pydantic import BaseModel, Field, create_model, model_validator
+from pydantic_core import PydanticCustomError
 from werkzeug.exceptions import BadRequest, HTTPException
 from werkzeug.http import dump_options_header
 from werkzeug.wrappers import Request, Response
-from pydantic import BaseModel, Field, create_model, model_validator
-from pydantic_core import PydanticCustomError
-from formidable.fields import UploadedFile
-from formidable.views import Form, trigger
-from formidable.renderers import (
-    FormRenderer, RadioFieldRenderer, StringFieldRenderer, render_template)
+
+from ex_forms.LD_000_0V1100.model import LD_000_0V1100Model
 from formidable import i18n, themes
+from formidable.fields import UploadedFile
+from formidable.renderers import (
+    FormRenderer,
+    RadioFieldRenderer,
+    StringFieldRenderer,
+    render_template,
+)
 from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
 from formidable.themes.material import MATERIAL
 from formidable.ui import load_ui, parse_ui
+from formidable.views import Form, trigger
 from formidable.wizard import FileDraftStore, Step, Wizard
-from ex_forms.LD_000_0V1100.model import LD_000_0V1100Model
-
 
 themes.use(MATERIAL)  # the site-wide default
 i18n.use(
@@ -449,7 +454,7 @@ class LimitedRequest(Request):
 def wsgi_app(environ, start_response):
     request = LimitedRequest(environ)
     if matched := routes.match(request.path):
-        (route, params) = matched
+        (route, _params) = matched
         if route is not None:
             try:
                 response = route["endpoint"](request)

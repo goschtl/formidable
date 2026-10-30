@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
 from beartype.door import TypeHint
 from markupsafe import Markup
+from pydantic import BaseModel, Field
 
 from formidable.renderers import (
     BASIC_WIDGETS,

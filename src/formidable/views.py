@@ -1,11 +1,13 @@
 import hmac
 import secrets
 import typing as t
-from inspect import unwrap, getmembers, isroutine
+from inspect import getmembers, isroutine, unwrap
+
 from pydantic import BaseModel, ValidationError
 from werkzeug.wrappers import Response
+
 from formidable import i18n, themes
-from formidable.data import unflatten, normalize
+from formidable.data import normalize, unflatten
 from formidable.renderers import CSRF_FIELD, FormRenderer
 
 
@@ -33,9 +35,7 @@ class annotation:
 
     @classmethod
     def predicate(cls, component):
-        if cls.discriminator(component) is not None:
-            return False
-        return True
+        return cls.discriminator(component) is None
 
     @classmethod
     def find(cls, obj_or_module):
@@ -75,7 +75,7 @@ class Form:
 
     def __init__(self):
         triggers = sorted(
-            tuple(trigger.find(self)),
+            trigger.find(self),
             key=lambda x: (x[0]["order"], x[0]["name"])
         )
         self.buttons = {

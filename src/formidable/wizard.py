@@ -13,15 +13,16 @@ import secrets
 import time
 import typing as t
 from pathlib import Path
-from pydantic import BaseModel, ValidationError
+
 from markupsafe import Markup
+from pydantic import BaseModel, ValidationError
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import redirect
+
 from formidable.conditions import is_visible, value_at
 from formidable.data import normalize
 from formidable.renderers import resolve
 from formidable.views import Form, trigger
-
 
 REVIEW = "review"
 
@@ -120,9 +121,9 @@ def holds_files(schema: type[BaseModel]) -> str | None:
             hint = resolve(args[0])[0].hint
         if hint in (FileStorage, bytes):
             return name
-        if isinstance(hint, type) and issubclass(hint, BaseModel):
-            if nested := holds_files(hint):
-                return f"{name}.{nested}"
+        is_model = isinstance(hint, type) and issubclass(hint, BaseModel)
+        if is_model and (nested := holds_files(hint)):
+            return f"{name}.{nested}"
     return None
 
 

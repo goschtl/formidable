@@ -13,7 +13,6 @@ error type, so applications can add their own types to the catalog.
 
 import typing as t
 
-
 Catalog = t.Mapping[str, str]
 
 _current: Catalog = {}

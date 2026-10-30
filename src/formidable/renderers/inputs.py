@@ -3,8 +3,8 @@
 import datetime
 import json
 import typing as t
-from formidable.renderers.base import (
-    IFieldRenderer, TRUTHY, classes, field_title)
+
+from formidable.renderers.base import TRUTHY, IFieldRenderer, classes, field_title
 
 
 class InputFieldRenderer(IFieldRenderer):

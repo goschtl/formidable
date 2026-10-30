@@ -29,6 +29,18 @@ from formidable.renderers.base import (
     resolve,
     widget_hint,
 )
+from formidable.renderers.choices import (
+    MultiSelectFieldRenderer,
+    RadioFieldRenderer,
+    SelectFieldRenderer,
+)
+from formidable.renderers.form import (
+    BASIC_WIDGETS,
+    NAMED_WIDGETS,
+    BoundField,
+    BoundForm,
+    FormRenderer,
+)
 from formidable.renderers.inputs import (
     AsyncFileFieldRenderer,
     BoolFieldRenderer,
@@ -44,11 +56,6 @@ from formidable.renderers.inputs import (
     TextareaFieldRenderer,
     TimeFieldRenderer,
 )
-from formidable.renderers.choices import (
-    MultiSelectFieldRenderer,
-    RadioFieldRenderer,
-    SelectFieldRenderer,
-)
 from formidable.renderers.structures import (
     INDEX_PLACEHOLDER,
     LIST_SCRIPT,
@@ -56,29 +63,22 @@ from formidable.renderers.structures import (
     ListFieldRenderer,
     ModelFieldRenderer,
 )
-from formidable.renderers.form import (
-    BASIC_WIDGETS,
-    NAMED_WIDGETS,
-    BoundField,
-    BoundForm,
-    FormRenderer,
-)
 
 __all__ = [
-    "UPLOAD_STYLE",
-    "UPLOAD_SCRIPTS",
-    "AsyncFileFieldRenderer",
     "BASIC_WIDGETS",
     "CONDITIONS_SCRIPT",
     "CSRF_FIELD",
     "INDEX_PLACEHOLDER",
-    "MASK_SCRIPT",
     "LIST_SCRIPT",
+    "MASK_SCRIPT",
     "NAMED_WIDGETS",
     "NUM_PLACEHOLDER",
     "OPTIONAL",
     "TEMPLATES",
     "TRUTHY",
+    "UPLOAD_SCRIPTS",
+    "UPLOAD_STYLE",
+    "AsyncFileFieldRenderer",
     "BoolFieldRenderer",
     "BoundField",
     "BoundForm",
