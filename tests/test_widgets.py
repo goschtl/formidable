@@ -67,7 +67,7 @@ def test_widget_hints_from_schema():
     assert ('<textarea id="field-body" name="body" required="required">'
             'hello &lt;world&gt;</textarea>') in html
     assert 'type="email"' in html
-    assert '<fieldset class="field-radiogroup">' in html
+    assert '<fieldset class="field-radiogroup"' in html
 
 
 class Prefs(BaseModel):

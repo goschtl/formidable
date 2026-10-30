@@ -1,1 +1,1 @@
-<small tal:condition="description" class="${classes('field-description', theme.hint)}">${description}</small>
+<small tal:condition="description" tal:define="field name | None" class="${classes('field-description', theme.hint)}" id="${'field-%s-description' % field if field else None}">${description}</small>

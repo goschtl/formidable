@@ -1,7 +1,7 @@
 <div class="${classes(theme.wrapper)}" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
   <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
-  <input checked="${checked}" class="${css}" id="field-${name}" name="${name}" type="checkbox" value="${value}" tal:attributes="control_attrs">
-  ${render_partial('formidable/error.pt', error=error, theme=theme)}
-  ${render_partial('formidable/description.pt', description=description, theme=theme)}
-  ${render_partial('formidable/help.pt', help=help, theme=theme)}
+  <input aria-describedby="${described_by}" aria-invalid="${invalid}" checked="${checked}" class="${css}" id="field-${name}" name="${name}" type="checkbox" value="${value}" tal:attributes="control_attrs">
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, name=name, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, name=name, theme=theme)}
 </div>

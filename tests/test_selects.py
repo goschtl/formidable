@@ -57,14 +57,14 @@ def test_select_theme_and_error_classes():
     theme = Theme(select="form-select", invalid="is-invalid", error="feedback")
     html = FormRenderer(theme=theme)(
         Schema, errors={"color": "Bad choice"})
-    assert '<select class="form-select is-invalid"' in html
-    assert '<span class="field-error feedback">Bad choice</span>' in html
+    assert '<select aria-describedby="field-color-error" aria-invalid="true" class="form-select is-invalid"' in html
+    assert '<span class="field-error feedback" id="field-color-error">Bad choice</span>' in html
 
 
 def test_radio_group_renders_options():
     renderer = FormRenderer(custom_widgets={"color": RadioFieldRenderer})
     html = renderer(Schema)
-    assert '<fieldset class="field-radiogroup">' in html
+    assert '<fieldset class="field-radiogroup" id="field-color">' in html
     assert '<legend>Color</legend>' in html
     assert ('<input id="field-color-0" name="color" required="required" '
             'type="radio" value="red">') in html
@@ -75,9 +75,9 @@ def test_radio_round_trips_value_and_errors():
     renderer = FormRenderer(custom_widgets={"color": RadioFieldRenderer})
     html = renderer(
         Schema, values={"color": "green"}, errors={"color": "Bad"})
-    assert ('<input checked="checked" id="field-color-1" name="color" '
+    assert ('<input aria-invalid="true" checked="checked" id="field-color-1" name="color" '
             'required="required" type="radio" value="green">') in html
-    assert '<span class="field-error">Bad</span>' in html
+    assert '<span class="field-error" id="field-color-error">Bad</span>' in html
 
 
 def test_radio_enum_source():

@@ -1,7 +1,7 @@
-<fieldset class="${classes('field-model', theme.fieldset)}" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
+<fieldset aria-describedby="${described_by}" class="${classes('field-model', theme.fieldset)}" data-conditions="${conditions}" id="field-${name}" tal:attributes="wrapper_attrs">
   <legend class="${classes(theme.legend)}">${title}</legend>
   <tal:field repeat="field fields">${field}</tal:field>
-  ${render_partial('formidable/error.pt', error=error, theme=theme)}
-  ${render_partial('formidable/description.pt', description=description, theme=theme)}
-  ${render_partial('formidable/help.pt', help=help, theme=theme)}
+  ${render_partial('formidable/error.pt', error=error, name=name, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, name=name, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, name=name, theme=theme)}
 </fieldset>

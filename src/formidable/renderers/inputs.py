@@ -1,5 +1,6 @@
 """Scalar widgets: text, number, temporal, password, textarea, file."""
 
+import datetime
 import json
 import typing as t
 from formidable.renderers.base import (
@@ -59,13 +60,29 @@ class FloatFieldRenderer(InputFieldRenderer):
 
 class DateFieldRenderer(InputFieldRenderer):
     input_type = "date"
+    parse: t.ClassVar[t.Callable] = datetime.date.fromisoformat
+    format_key: t.ClassVar[str] = "ui_date_format"
+    format_default: t.ClassVar[str] = "%Y-%m-%d"
 
     def format_value(self, value):
         return value.isoformat() if hasattr(value, "isoformat") else value
 
+    def display(self, value, field_type):
+        if isinstance(value, str) and value:
+            try:
+                value = type(self).parse(value)
+            except ValueError:
+                return value
+        if hasattr(value, "strftime"):
+            return value.strftime(self.text(self.format_key, self.format_default))
+        return super().display(value, field_type)
 
-class DateTimeFieldRenderer(InputFieldRenderer):
+
+class DateTimeFieldRenderer(DateFieldRenderer):
     input_type = "datetime-local"
+    parse = datetime.datetime.fromisoformat
+    format_key = "ui_datetime_format"
+    format_default = "%Y-%m-%d %H:%M"
 
     def format_value(self, value):
         if hasattr(value, "isoformat"):
@@ -76,6 +93,9 @@ class DateTimeFieldRenderer(InputFieldRenderer):
 class TimeFieldRenderer(DateTimeFieldRenderer):
     input_type = "time"
 
+    def display(self, value, field_type):
+        return InputFieldRenderer.display(self, self.format_value(value), field_type)
+
 
 class PasswordFieldRenderer(InputFieldRenderer):
     input_type = "password"
@@ -84,10 +104,14 @@ class PasswordFieldRenderer(InputFieldRenderer):
         # secrets are never echoed back into the HTML
         return super().attributes(name, None, invalid=invalid)
 
+    def display(self, value, field_type):
+        return "••••••" if value else None
+
 
 class TextareaFieldRenderer(InputFieldRenderer):
 
     template = "formidable/textarea.pt"
+    multiline = True
 
     def attributes(self, name, value, invalid=False):
         attrs = super().attributes(name, value, invalid=invalid)
@@ -109,6 +133,11 @@ class BoolFieldRenderer(InputFieldRenderer):
                            self.theme.invalid if invalid else ""),
         }
 
+    def display(self, value, field_type):
+        if value in TRUTHY:
+            return self.text("ui_yes", "Yes")
+        return self.text("ui_no", "No")
+
 
 class FileFieldRenderer(InputFieldRenderer):
     template = "formidable/file.pt"
@@ -117,6 +146,11 @@ class FileFieldRenderer(InputFieldRenderer):
     def attributes(self, name, value, invalid=False):
         # Browsers forbid prefilling file inputs, so never emit a value.
         return super().attributes(name, None, invalid=invalid)
+
+    def display(self, value, field_type):
+        files = value if isinstance(value, list) else [value] if value else []
+        return ", ".join(getattr(file, "filename", None) or "✓"
+                         for file in files) or None
 
     def render(self, name, field_info, field_type, value=None, errors=None):
         error = (errors or {}).get(name)
@@ -140,6 +174,11 @@ class AsyncFileFieldRenderer(InputFieldRenderer):
 
     template = "formidable/file_async.pt"
     input_type = "file"
+
+    def display(self, value, field_type):
+        ids = value if isinstance(value, list) else [value] if value else []
+        label = self.renderer.upload_label or str
+        return ", ".join(label(upload_id) for upload_id in ids) or None
 
     def render(self, name, field_info, field_type, value=None, errors=None):
         error = (errors or {}).get(name)

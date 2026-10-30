@@ -36,6 +36,8 @@ MATERIAL = Theme(
     button="btn waves-effect waves-light",
     row_button="btn-flat",
     container="container",
+    summary="card-panel red lighten-4",
+    status="card-panel green lighten-4",
     templates=(str(Path(__file__).parent / "material_templates"),),
     widgets={
         TypeHint(str): MaterialStringRenderer,

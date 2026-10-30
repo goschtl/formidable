@@ -31,6 +31,13 @@ class SelectFieldRenderer(IFieldRenderer):
                     for member in field_type]
         return [(str(v), str(v)) for v in t.get_args(field_type)]
 
+    def display(self, value, field_type):
+        if isinstance(value, enum.Enum):
+            value = value.value
+        if value is None or value == "":
+            return None
+        return dict(self.choices(field_type)).get(str(value), str(value))
+
     def render(self, name, field_info, field_type, value=None, errors=None):
         theme = self.theme
         error = (errors or {}).get(name)
@@ -94,6 +101,14 @@ class MultiSelectFieldRenderer(SelectFieldRenderer):
     The browser submits one repeated key per selection; the form layer
     folds those back into a list before validation.
     """
+
+    def display(self, value, field_type):
+        args = t.get_args(field_type)
+        item_annotation = args[0] if args else str
+        items = value if isinstance(value, list) else [value] if value else []
+        return ", ".join(filter(None, (
+            super(MultiSelectFieldRenderer, self).display(item, item_annotation)
+            for item in items))) or None
 
     def render(self, name, field_info, field_type, value=None, errors=None):
         theme = self.theme

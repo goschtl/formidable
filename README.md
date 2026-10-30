@@ -229,6 +229,14 @@ messages. Validation errors flow through the same template. Jinja2 and
 f-strings can use the text form, `<form {form.attrs}>`, which Chameleon
 can't parse. See the `/custom` route in `ex.py`.
 
+### Multi-step forms, read-only views and accessibility
+
+A `Wizard` splits one model over several pages, with drafts to continue later and
+a review page. `renderer(Schema, values=data, readonly=True)` shows answers as
+text. Forms come with an error summary that links to each field, and inputs point
+at their messages with `aria-describedby`. See the
+[documentation](https://goschtl.github.io/formidable/).
+
 ### Custom widgets
 
 Register per type or per field:
@@ -377,6 +385,7 @@ this needs JavaScript, and carries FilePond inline, about 140 KB.
 | `get_messages(request)` | error-message catalog (falls back to `i18n.use()`) |
 | `get_form(request, ...)` | the assembled form — override for own templates |
 | `bind(request, values, errors)` | a BoundForm for explicit field rendering |
+| `get_readonly(request, values)` | the values as text |
 | `render_response(html_form, request)` | page shell around the form |
 
 ## Development

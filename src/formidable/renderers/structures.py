@@ -48,6 +48,9 @@ class ModelFieldRenderer(IFieldRenderer):
 
     template = "formidable/model.pt"
 
+    def render_readonly(self, name, field_info, field_type, value=None):
+        return self.render(name, field_info, field_type, value)
+
     def render(self, name, field_info, field_type, value=None, errors=None):
         # recursion stays in Python: widget dispatch needs the types
         fields = [
@@ -60,6 +63,7 @@ class ModelFieldRenderer(IFieldRenderer):
         ]
         return self.render_template(
             self.template,
+            name=name,
             title=field_title(field_info, name),
             fields=fields,
             error=(errors or {}).get(name),
@@ -82,6 +86,20 @@ class ListFieldRenderer(IFieldRenderer):
     template = "formidable/list.pt"
     item_template: t.ClassVar[str] = "formidable/list_item.pt"
 
+    def render_readonly(self, name, field_info, field_type, value=None):
+        title = field_title(field_info, name)
+        args = t.get_args(field_type)
+        item_annotation = args[0] if args else str
+        fields = []
+        for index, item in enumerate(value or []):
+            item_info = FieldInfo.from_annotation(item_annotation)
+            item_info.title = f"{title} #{index + 1}"
+            fields.append(self.renderer.render_field(
+                f"{name}.{index}", item_info, value=item))
+        return self.render_template(
+            ModelFieldRenderer.template,
+            name=name, title=title, fields=fields, error=None)
+
     def render(self, name, field_info, field_type, value=None, errors=None):
         title = field_title(field_info, name)
         args = t.get_args(field_type)
@@ -103,6 +121,7 @@ class ListFieldRenderer(IFieldRenderer):
             self.renderer.needs_script = True
         return self.render_template(
             self.template,
+            name=name,
             title=title,
             rows=rows,
             blank_row=item_row(INDEX_PLACEHOLDER, NUM_PLACEHOLDER, None),

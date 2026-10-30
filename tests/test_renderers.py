@@ -63,7 +63,7 @@ def test_values_are_rendered():
 
 def test_errors_are_rendered():
     html = FormRenderer()(Schema, errors={"age": "Field required"})
-    assert '<span class="field-error">Field required</span>' in html
+    assert '<span class="field-error" id="field-age-error">Field required</span>' in html
 
 
 def test_unknown_type_renders_warning():
@@ -139,7 +139,7 @@ def test_nested_errors_land_on_the_right_input():
         values={"address": {}, "users": [{"id": "xx"}]},
         errors={"users.0.id": "Not an integer"},
     )
-    assert '<span class="field-error">Not an integer</span>' in html
+    assert '<span class="field-error" id="field-users.0.id-error">Not an integer</span>' in html
 
 
 def test_list_ships_template_and_row_buttons():

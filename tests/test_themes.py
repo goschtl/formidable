@@ -37,7 +37,7 @@ def test_theme_classes_are_applied():
     assert '<label class="lbl" for="field-name">Your Name</label>' in html
     assert 'class="inp"' in html
     assert 'class="check"' in html
-    assert '<fieldset class="field-list fs">' in html
+    assert '<fieldset class="field-list fs"' in html
     assert '<legend class="lg">Users</legend>' in html
     assert 'class="formidable-add-row rowbtn"' in html
     assert 'class="formidable-remove-row rowbtn"' in html
@@ -51,7 +51,7 @@ def test_theme_marks_invalid_inputs_and_errors():
         errors={"name": "Bad value"},
     )
     assert 'class="inp is-invalid"' in html
-    assert '<span class="field-error feedback">Bad value</span>' in html
+    assert '<span class="field-error feedback" id="field-name-error">Bad value</span>' in html
     # untouched fields keep the plain input class
     assert 'class="inp"' in html
 
@@ -138,7 +138,7 @@ def test_material_marks_errors():
     html = FormRenderer(theme=MATERIAL)(
         Schema, values={"name": ""}, errors={"name": "Required"})
     assert 'class="validate invalid"' in html
-    assert '<span class="field-error helper-text red-text">Required</span>' in html
+    assert '<span class="field-error helper-text red-text" id="field-name-error">Required</span>' in html
 
 
 def test_site_wide_theme_registration():

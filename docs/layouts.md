@@ -68,7 +68,7 @@ The `/custom` route in `ex.py` works like this.
 | `form['name'].name` | The field's dot path |
 | `form.attributes` | The `<form>` attributes, for `tal:attributes` |
 | `form.attrs` | The same as text, for Jinja2 or f-strings |
-| `form.form_errors()` | The block of model-level errors |
+| `form.form_errors()` | The [summary of all errors](accessibility.md), with model-level errors |
 | `form.error('name')` | The bare error message of a field |
 | `form.errors` | All error messages, by dot path |
 | `form.buttons()` | The buttons and the CSRF token |
@@ -85,8 +85,8 @@ Looping over `form` gives the top-level fields in model order:
 
 !!! warning "Place every field"
     A field you leave out isn't submitted. If it's required, validation fails,
-    and since the message is rendered with the field, the form comes back with
-    no visible reason. Keep this in mind especially when the model changes.
+    so the form can never be sent. `form.form_errors()` still names the field,
+    which is why every layout should include it.
 
 !!! warning "Keep `form.scripts()`"
     List rows, conditions, masks and background uploads all need it.

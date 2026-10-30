@@ -35,6 +35,8 @@ Theme(templates=("mytheme/templates",))       # the same, as part of a theme
 - `classes(...)` merges class names and skips empty ones.
 - A template sees the variables its renderer passes, plus `theme`. A partial
   only sees what is handed to it.
+- `described_by` and `invalid` hold the [accessibility](accessibility.md)
+  attributes, and partials take `name` for their ids.
 - `attrs` is reserved by Chameleon. The built-in templates use `wrapper_attrs`
   and `control_attrs` for `ui:attributes`.
 

@@ -14,8 +14,9 @@ Before validation, HTML form quirks are normalized:
 ## Where errors appear
 
 Errors are routed by dot path to the exact widget, as a message plus an
-`invalid` class on the input. Errors from a model-level validator appear at
-the top of the form, unless they name a field:
+`invalid` class on the input. A [summary](accessibility.md) above the form lists
+them all with links. Errors from a model-level validator appear only there,
+unless they name a field:
 
 ```python
 @model_validator(mode="after")

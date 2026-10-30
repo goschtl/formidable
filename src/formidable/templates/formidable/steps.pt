@@ -1,0 +1,6 @@
+<nav aria-label="${label}" class="form-steps">
+  <p class="form-steps-position">${position}</p>
+  <ol class="${classes(theme.steps)}">
+    <li tal:repeat="step steps" aria-current="${'step' if step.current else None}" class="${classes(theme.step)}"><a class="${classes(theme.step_link, theme.step_current if step.current else '')}" href="?step=${step.name}">${step.title}</a></li>
+  </ol>
+</nav>

@@ -38,6 +38,12 @@ class Theme:
     button: str = ""        # trigger (submit) buttons
     row_button: str = ""    # the JS add/remove row buttons
     container: str = ""     # the <main> wrapper used by page()
+    summary: str = ""       # the list of errors above a form
+    status: str = ""        # a message such as "saved"
+    steps: str = ""         # the list of steps of a Wizard
+    step: str = ""          # one step in that list
+    step_link: str = ""
+    step_current: str = ""  # added to the link of the current step
     templates: tuple[str, ...] = ()  # folders searched before the built-ins
     widgets: t.Mapping = ()          # widget overrides by type
     stylesheets: tuple[str, ...] = ()
@@ -65,7 +71,8 @@ def current() -> Theme:
     return _current
 
 
-def page(html_form, theme: Theme = DEFAULT, title: str = "") -> str:
+def page(html_form, theme: Theme = DEFAULT, title: str = "",
+         lang: str = "en") -> str:
     """Wrap a rendered form in a full HTML page with the theme's assets."""
     links = "\n  ".join(
         f'<link href="{href}" rel="stylesheet">' for href in theme.stylesheets)
@@ -74,7 +81,7 @@ def page(html_form, theme: Theme = DEFAULT, title: str = "") -> str:
     main_attr = f' class="{theme.container}"' if theme.container else ""
     body = str(html_form)
     return f"""<!doctype html>
-<html>
+<html lang="{escape(lang)}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

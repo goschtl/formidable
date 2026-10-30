@@ -1,0 +1,5 @@
+<section tal:repeat="section sections" class="form-review-section">
+  <h2 class="${classes(theme.legend)}">${section.title}</h2>
+  ${section.fields}
+  <p><a href="?step=${section.name}">${edit}<span class="form-review-of"> (${section.title})</span></a></p>
+</section>

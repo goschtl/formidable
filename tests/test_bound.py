@@ -53,9 +53,9 @@ def test_values_and_errors_round_trip():
     bound = FormRenderer().bind(
         Schema, values={"name": "Jane"}, errors={"name": "Bad", "": "Nope"})
     assert 'value="Jane"' in str(bound["name"])
-    assert '<span class="field-error">Bad</span>' in str(bound["name"])
+    assert '<span class="field-error" id="field-name-error">Bad</span>' in str(bound["name"])
     assert bound.error("name") == "Bad"
-    assert '<div class="form-errors">' in str(bound.form_errors())
+    assert 'class="form-errors"' in str(bound.form_errors())
 
 
 def test_scripts_only_for_list_forms():
@@ -114,7 +114,7 @@ def test_template_view_full_cycle():
         "__trigger__": "save", "agree": "true"}))
     html = response.get_data(as_text=True)
     assert '<div class="left">' in html
-    assert '<span class="field-error">Field required</span>' in html
+    assert '<span class="field-error" id="field-name-error">Field required</span>' in html
     assert 'checked="checked"' in html
 
 

@@ -110,6 +110,22 @@ class Form:
     def get_renderer(self, request):
         return FormRenderer(theme=self.get_theme(request))
 
+    def get_fields(self, request) -> t.Collection[str] | None:
+        """The top-level fields to show; None for all of them."""
+        return None
+
+    def get_hidden(self, request) -> t.Mapping[str, t.Any] | None:
+        """Values to carry along in hidden inputs."""
+        return None
+
+    def get_buttons(self, request) -> t.Iterable[Button]:
+        return self.buttons.values()
+
+    def configured_renderer(self, request) -> FormRenderer:
+        renderer = self.get_renderer(request)
+        renderer.messages = self.get_messages(request)
+        return renderer
+
     def get_csrf_token(self, request) -> str | None:
         """The request's CSRF token: the cookie's, or a fresh one.
 
@@ -157,10 +173,12 @@ class Form:
 
     def get_form(self, request, values=None, errors=None):
         schema = self.get_schema(request)
-        renderer = self.get_renderer(request)
+        renderer = self.configured_renderer(request)
         return renderer(schema, values=values, errors=errors,
-                        buttons=self.buttons.values(),
-                        csrf_token=self.get_csrf_token(request))
+                        buttons=self.get_buttons(request),
+                        csrf_token=self.get_csrf_token(request),
+                        only=self.get_fields(request),
+                        hidden=self.get_hidden(request))
 
     def bind(self, request, values=None, errors=None):
         """A BoundForm for explicit field rendering in own templates.
@@ -168,10 +186,19 @@ class Form:
         Typically used from an overridden get_form(), which may return
         the template output as a plain string.
         """
-        renderer = self.get_renderer(request)
+        renderer = self.configured_renderer(request)
         return renderer.bind(self.get_schema(request), values=values,
-                             errors=errors, buttons=self.buttons.values(),
-                             csrf_token=self.get_csrf_token(request))
+                             errors=errors, buttons=self.get_buttons(request),
+                             csrf_token=self.get_csrf_token(request),
+                             only=self.get_fields(request),
+                             hidden=self.get_hidden(request))
+
+    def get_readonly(self, request, values, buttons=()):
+        """The values as text, for a summary or a confirmation page."""
+        renderer = self.configured_renderer(request)
+        return renderer(self.get_schema(request), values=values, readonly=True,
+                        buttons=buttons,
+                        csrf_token=self.get_csrf_token(request) if buttons else None)
 
     def render_response(self, html_form, request) -> Response:
         """Hook: wrap the rendered form in a full page if desired."""
@@ -200,18 +227,23 @@ class Form:
                 return btn.action(request, payload, arg)
             return btn.action(request, payload)
         except ValidationError as exc:
-            errors: dict[str, str] = {}
-            messages = self.get_messages(request)
-            for error in exc.errors():
-                # a cross-field validator can bind its error to a field
-                # by raising PydanticCustomError with {"field": "<path>"};
-                # otherwise a model-level error renders at the form top
-                ctx = error.get("ctx") or {}
-                loc = ctx.get("field") or ".".join(
-                    str(part) for part in error["loc"])
-                errors.setdefault(loc, i18n.translate(error, messages))
+            errors = self.errors_of(exc, request)
             html_form = self.get_form(request, values=data, errors=errors)
             return self.render_response(html_form, request)
+
+    def errors_of(self, exc: ValidationError, request) -> dict[str, str]:
+        """Translated messages by dot path; "" for the form as a whole."""
+        errors: dict[str, str] = {}
+        messages = self.get_messages(request)
+        for error in exc.errors():
+            # a cross-field validator can bind its error to a field
+            # by raising PydanticCustomError with {"field": "<path>"};
+            # otherwise a model-level error renders at the form top
+            ctx = error.get("ctx") or {}
+            loc = ctx.get("field") or ".".join(
+                str(part) for part in error["loc"])
+            errors.setdefault(loc, i18n.translate(error, messages))
+        return errors
 
     def __call__(self, request):
         if request.method not in self.methods:

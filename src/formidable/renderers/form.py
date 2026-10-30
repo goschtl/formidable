@@ -11,6 +11,8 @@ from pydantic.fields import FieldInfo
 from beartype.door import TypeHint
 from markupsafe import Markup
 from werkzeug.datastructures import FileStorage
+from formidable import i18n
+from formidable.conditions import is_visible
 from formidable.themes import Theme, current
 from formidable.ui import NO_UI, UIField, ui_path
 from formidable.renderers.base import (
@@ -60,6 +62,19 @@ NAMED_WIDGETS = {
 }
 
 
+class ErrorItem(t.NamedTuple):
+    path: str
+    title: str
+    message: str
+
+
+def as_values(values: t.Any) -> dict[str, t.Any]:
+    """Values as a dict, also from a validated model instance."""
+    if isinstance(values, BaseModel):
+        return {name: getattr(values, name) for name in type(values).model_fields}
+    return values or {}
+
+
 class FormRenderer:
 
     def __init__(self,
@@ -70,7 +85,9 @@ class FormRenderer:
                  templates: t.Iterable[str | PathLike] = (),
                  ui: t.Mapping[str, UIField] | None = None,
                  upload_url: str | None = None,
-                 upload_options: t.Mapping[str, t.Any] | None = None):
+                 upload_options: t.Mapping[str, t.Any] | None = None,
+                 upload_label: t.Callable[[str], str] | None = None,
+                 messages: i18n.Catalog | None = None):
         if theme is None:
             theme = current()  # the theme registered site-wide
         # explicit `widgets` beat the theme's, which beat the defaults
@@ -83,6 +100,9 @@ class FormRenderer:
         # where file widgets holding references upload to, see dispatch()
         self.upload_url = upload_url
         self.upload_options = upload_options
+        # what a read-only view shows for an upload id: its file name
+        self.upload_label = upload_label
+        self.messages = messages  # interface texts, None: the site-wide ones
         # Server-side validation is the source of truth: `novalidate`
         # stops the browser from blocking submits, while the `required`
         # attributes stay in the markup for accessibility and styling.
@@ -90,6 +110,9 @@ class FormRenderer:
         self.needs_script = False
         self.needs_multipart = False
         self.needs_uploads = False
+        self.readonly = False
+        self.values: t.Any = {}  # what the conditions of read-only fields see
+        self.titles: dict[str, str] = {}
 
     def dispatch(self, name: str, token: TypeHint,
                  model_field: FieldInfo | None = None,
@@ -138,16 +161,43 @@ class FormRenderer:
             "formidable/button.pt",
             name=btn.type, value=btn.name, title=btn.title)
 
+    def text(self, key: str, default: str, **values) -> str:
+        return i18n.text(key, default, self.messages, **values)
+
+    def error_item(self, path: str, message: str) -> ErrorItem:
+        """An entry of the error summary. An error on `tags.0` may belong to
+        a widget for all of `tags`: it links to the closest field there is."""
+        target = path
+        while target not in self.titles and "." in target:
+            target = target.rsplit(".", 1)[0]
+        title = self.titles.get(target, path.rsplit(".", 1)[-1])
+        return ErrorItem(target, title, message)
+
     def render_form_errors(self, errors: dict[str, str]) -> Markup | None:
-        """Model-level errors (cross-field validators) have no field to
-        attach to; they render in their own block."""
-        if form_error := errors.get(""):
-            return self.render_template(
-                "formidable/form_errors.pt", error=form_error)
-        return None
+        """All errors in one place, linking to their fields. Model-level
+        errors (cross-field validators) have no field to attach to and
+        only show here."""
+        if not errors:
+            return None
+        return self.render_template(
+            "formidable/form_errors.pt",
+            heading=self.text("ui_error_summary",
+                              "Please correct the following:"),
+            error=errors.get(""),
+            items=[self.error_item(path, message)
+                   for path, message in errors.items() if path])
+
+    def render_hidden(self, hidden: t.Mapping[str, t.Any] | None) -> list[Markup]:
+        """Values for the conditions of a form showing only some fields."""
+        return [
+            self.render_template("formidable/csrf.pt", name=name, value=item)
+            for name, value in (hidden or {}).items()
+            for item in (value if isinstance(value, list) else [value])]
 
     def render_scripts(self) -> Markup | None:
         """The scripts this form needs, or None."""
+        if self.readonly:
+            return None
         scripts = []
         if self.needs_script:
             scripts.append(LIST_SCRIPT)
@@ -171,10 +221,14 @@ class FormRenderer:
              values: dict[str, t.Any] | None = None,
              errors: dict[str, str] | None = None,
              buttons: t.Iterable = (),
-             csrf_token: str | None = None) -> "BoundForm":
+             csrf_token: str | None = None,
+             readonly: bool = False,
+             only: t.Collection[str] | None = None,
+             hidden: t.Mapping[str, t.Any] | None = None) -> "BoundForm":
         """Bind a schema for explicit, template-driven field rendering."""
         return BoundForm(self, model_cls, values=values, errors=errors,
-                         buttons=buttons, csrf_token=csrf_token)
+                         buttons=buttons, csrf_token=csrf_token,
+                         readonly=readonly, only=only, hidden=hidden)
 
     def render_field(self,
                      name: str,
@@ -184,6 +238,8 @@ class FormRenderer:
         token, optional = resolve(model_field.annotation)
         path = ui_path(name)
         ui = self.ui.get(path, NO_UI)
+        if self.readonly and not is_visible(name, self.ui, self.values):
+            return Markup("")
         widget = self.dispatch(name, token, model_field, ui)
         if widget is None:
             return self.render_template(
@@ -192,9 +248,13 @@ class FormRenderer:
         if ui.title and not path.endswith(".items"):
             model_field = copy.copy(model_field)
             model_field.title = ui.title
+        self.titles[name] = field_title(model_field, name)
         renderer: IFieldRenderer = widget(
             optional, self, ui=ui,
             description=ui.description or model_field.description)
+        if self.readonly:
+            return renderer.render_readonly(
+                name, model_field, token.hint, value=value)
         return renderer.render(
             name, model_field, token.hint, value=value, errors=errors)
 
@@ -207,24 +267,39 @@ class FormRenderer:
                  values: dict[str, t.Any] | None = None,
                  errors: dict[str, str] | None = None,
                  buttons: t.Iterable = (),
-                 csrf_token: str | None = None) -> Markup:
-        values = values or {}
+                 csrf_token: str | None = None,
+                 readonly: bool = False,
+                 only: t.Collection[str] | None = None,
+                 hidden: t.Mapping[str, t.Any] | None = None) -> Markup:
+        """The whole form. `readonly` shows the values as text instead of
+        controls, and `only` limits it to these top-level fields."""
+        values = as_values(values)
         errors = errors or {}
         self.needs_script = False
         self.needs_multipart = False
         self.needs_uploads = False
+        self.readonly = readonly
+        self.values = values
+        self.titles = {}
         # fields first: they decide on the enctype and the row script
         fields = [
             self.render_field(
                 name, model_field,
                 value=field_value(name, model_field, values), errors=errors)
             for name, model_field in model_cls.model_fields.items()
+            if only is None or name in only
         ]
+        buttons = tuple(buttons)
+        if readonly and not buttons:
+            return self.render_template(
+                "formidable/form_readonly.pt", fields=fields)
+        tokens = [self.csrf_input(csrf_token)] if csrf_token else []
+        tokens.extend(self.render_hidden(hidden))
         return self.render_template(
             "formidable/form.pt",
             enctype="multipart/form-data" if self.needs_multipart else None,
             novalidate=self.novalidate,
-            csrf=self.csrf_input(csrf_token) if csrf_token else None,
+            csrf=Markup("\n").join(tokens) if tokens else None,
             form_errors=self.render_form_errors(errors),
             fields=fields,
             buttons=[self.render_button(btn) for btn in buttons],
@@ -276,19 +351,27 @@ class BoundForm:
 
     def __init__(self, renderer: FormRenderer, model_cls: type[BaseModel],
                  values=None, errors=None, buttons: t.Iterable = (),
-                 csrf_token: str | None = None):
+                 csrf_token: str | None = None, readonly: bool = False,
+                 only: t.Collection[str] | None = None,
+                 hidden: t.Mapping[str, t.Any] | None = None):
         self.renderer = renderer
         self.model_cls = model_cls
-        self.values = values or {}
+        self.values = as_values(values)
         self.errors = errors or {}
         self._buttons = tuple(buttons)
         self.csrf_token = csrf_token
+        self.hidden = hidden
+        renderer.readonly = readonly
+        renderer.values = self.values
+        renderer.titles = {}
         renderer.needs_script = False
         renderer.needs_multipart = False
         renderer.needs_uploads = False
         self._fields: dict[str, BoundField] = {}
         self._nested: dict[str, BoundField] = {}
         for name, model_field in model_cls.model_fields.items():
+            if only is not None and name not in only:
+                continue
             value = field_value(name, model_field, self.values)
             self._fields[name] = self._render(name, model_field, value)
         self.needs_multipart = renderer.needs_multipart
@@ -341,6 +424,9 @@ class BoundForm:
 
     field = __getitem__
 
+    def __contains__(self, name: str) -> bool:
+        return name in self._fields
+
     def __iter__(self) -> t.Iterator[BoundField]:
         return iter(self._fields.values())
 
@@ -367,7 +453,8 @@ class BoundForm:
             for name, value in self.attributes.items())
 
     def form_errors(self) -> Markup:
-        """The model-level error block, or empty."""
+        """All errors, linking to their fields, or empty. A field you did
+        not place shows its message here as well."""
         return self.renderer.render_form_errors(self.errors) or Markup("")
 
     def error(self, name: str) -> str:
@@ -383,6 +470,7 @@ class BoundForm:
     def buttons(self) -> Markup:
         """The form's trigger buttons (plus the CSRF token), themed."""
         parts = [self.csrf()] if self.csrf_token else []
+        parts.extend(self.renderer.render_hidden(self.hidden))
         parts.extend(self.renderer.render_button(btn) for btn in self._buttons)
         return Markup("\n").join(parts)
 

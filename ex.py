@@ -20,6 +20,7 @@ from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
 from formidable.themes.material import MATERIAL
 from formidable.ui import load_ui, parse_ui
+from formidable.wizard import FileDraftStore, Step, Wizard
 from ex_forms.LD_000_0V1100.model import LD_000_0V1100Model
 
 
@@ -298,6 +299,13 @@ class Uploads:
         entry = self.files.get(upload_id)
         return entry is not None and hmac.compare_digest(entry[0], owner)
 
+    def label(self, request, upload_id):
+        """A file's name for its owner; anyone else just sees the id."""
+        owner = request.cookies.get(Form.csrf_cookie, "")
+        if self.owned(owner, upload_id):
+            return self.files[upload_id][1]
+        return upload_id
+
     def filenames(self, request, upload_ids):
         """The names of submitted uploads, refusing anyone else's."""
         owner = request.cookies.get(Form.csrf_cookie, "")
@@ -350,12 +358,85 @@ class UploadDemo(Form):
                         mimetype="text/plain")
 
 
+# --- A form over several steps, with drafts and a review page ---
+
+
+class UnfallForm(BaseModel):
+    name: str = Field(..., title="Name")
+    geburtsdatum: datetime.date = Field(..., title="Geburtsdatum")
+    unfalltag: datetime.date = Field(..., title="Unfalltag")
+    hergang: str = Field(..., title="Unfallhergang",
+                         json_schema_extra={"widget": "textarea"})
+    verletzt: t.Literal["ja", "nein"] = Field(..., title="Wurden Sie verletzt?")
+    verletzung: str | None = Field(None, title="Welche Verletzung?")
+    arzt: str | None = Field(None, title="Behandelnder Arzt")
+    belege: list[str] = Field(default_factory=list, title="Belege")
+    bestaetigt: bool = Field(False, title="Meine Angaben sind richtig")
+
+    @model_validator(mode="after")
+    def verletzung_angeben(self):
+        if self.verletzt == "ja" and not self.verletzung:
+            raise PydanticCustomError(
+                "missing", "Pflichtfeld.", {"field": "verletzung"})
+        return self
+
+    @model_validator(mode="after")
+    def unfall_nach_geburt(self):
+        if self.unfalltag < self.geburtsdatum:
+            raise PydanticCustomError(
+                "unfall_vor_geburt", "Der Unfalltag liegt vor dem Geburtsdatum.")
+        return self
+
+
+UNFALL_UI = parse_ui({
+    "verletzt": {"ui:widget": "radio"},
+    "verletzung": {"ui:conditions": [{"field": "verletzt", "operator": "equals",
+                                      "value": "ja"}]},
+    "arzt": {"ui:conditions": [{"field": "verletzt", "operator": "equals",
+                                "value": "ja"}]},
+    "belege": {"ui:widget": "file", "ui:multiple": True,
+               "ui:accept": ["application/pdf", "image/png"]},
+})
+
+
+class UnfallMeldung(Wizard):
+    theme = BOOTSTRAP
+    steps = (
+        Step("person", "Person", ("name", "geburtsdatum")),
+        Step("unfall", "Unfall", ("unfalltag", "hergang", "verletzt", "verletzung")),
+        Step("behandlung", "Behandlung", ("arzt",)),
+        Step("abschluss", "Abschluss", ("belege", "bestaetigt")),
+    )
+    store = FileDraftStore(Path(tempfile.gettempdir()) / "formidable-drafts")
+
+    def get_schema(self, request):
+        return UnfallForm
+
+    def get_renderer(self, request):
+        return FormRenderer(
+            theme=self.get_theme(request), ui=UNFALL_UI, upload_url="/upload",
+            upload_options=i18n.UPLOAD_GERMAN,
+            upload_label=lambda upload_id: uploads.label(request, upload_id))
+
+    def render_response(self, html_form, request):
+        return Response(
+            page(html_form, self.get_theme(request), title="Unfallmeldung", lang="de"),
+            mimetype="text/html")
+
+    def done(self, request, data):
+        uploads.filenames(request, data.belege)  # only the user's own files
+        confirmation = self.get_readonly(request, data)
+        return self.render_response(
+            f"<h1>Vielen Dank</h1><p>Wir haben erhalten:</p>{confirmation}", request)
+
+
 # URL routing rules
 routes.add("/", endpoint=Index())
 routes.add("/rueckfrage", endpoint=Rueckfrage())
 routes.add("/ui-demo", endpoint=UIDemo())
 routes.add("/upload-demo", endpoint=UploadDemo())
 routes.add("/upload", endpoint=uploads)
+routes.add("/wizard", endpoint=UnfallMeldung())
 routes.add("/material", endpoint=MaterialIndex())
 routes.add("/custom", endpoint=Feedback())
 

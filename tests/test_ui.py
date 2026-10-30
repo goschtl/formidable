@@ -54,7 +54,7 @@ def test_title_and_description_override_the_model():
 
 
 def test_description_falls_back_to_the_model():
-    assert '<small class="field-description">From the model</small>' in render({})
+    assert '<small class="field-description" id="field-name-description">From the model</small>' in render({})
 
 
 def test_widget_and_placeholder():
@@ -101,7 +101,7 @@ def test_attributes_go_on_the_control():
         "body": {"ui:widget": "textarea", "ui:attributes": {"data-x": "1"}},
         "answer": {"ui:attributes": {"data-y": "2"}},
     })
-    assert '<input id="field-name" name="name" required="required" type="text" data-condition-target="body">' in html
+    assert 'id="field-name" name="name" required="required" type="text" data-condition-target="body">' in html
     assert '<textarea id="field-body" name="body" data-x="1">' in html
     assert '<select id="field-answer" name="answer" required="required" data-y="2">' in html
     assert "FormidableConditions" not in html
@@ -115,7 +115,7 @@ def test_attributes_on_every_radio():
 
 def test_attributes_on_structures():
     html = render({"rows": {"ui:attributes": {"data-r": "1"}}})
-    assert '<fieldset class="field-list" data-r="1">' in html
+    assert '<fieldset class="field-list" id="field-rows" data-r="1">' in html
 
 
 def test_attributes_are_escaped():
@@ -162,7 +162,7 @@ def test_wrapper_attributes_for_the_script():
 
 def test_unit_wraps_the_input():
     html = render({"name": {"ui:unit": "EUR"}})
-    assert '<div class="field-input-group"><input id="field-name"' in html
+    assert '<div class="field-input-group"><input aria-describedby' in html
     assert '<span class="field-unit">EUR</span></div>' in html
 
 
@@ -179,10 +179,10 @@ def test_unit_uses_the_theme():
 
 def test_help_is_escaped_and_themed():
     html = render({"name": {"ui:help": "Hilfe <b>"}})
-    assert '<div class="field-help">Hilfe &lt;b&gt;</div>' in html
+    assert '<div class="field-help" id="field-name-help">Hilfe &lt;b&gt;</div>' in html
     html = FormRenderer(theme=BOOTSTRAP, ui=parse_ui(
         {"name": {"ui:help": "Hilfe"}}))(Schema)
-    assert '<div class="field-help form-text">Hilfe</div>' in html
+    assert '<div class="field-help form-text" id="field-name-help">Hilfe</div>' in html
 
 
 def test_help_on_structures():

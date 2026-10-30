@@ -34,6 +34,9 @@ Override these methods to change how a view behaves:
 | `get_theme(request)` | Theme selection; falls back to `themes.use()` |
 | `get_messages(request)` | Error messages; falls back to `i18n.use()` |
 | `get_form(request, values, errors)` | The assembled form; override for [your own layout](layouts.md) |
+| `get_readonly(request, values, buttons)` | The values [as text](readonly.md) |
+| `get_fields(request)` | Which top-level fields to show; all by default |
+| `get_buttons(request)` | Which buttons to show; all by default |
 | `bind(request, values, errors)` | A bound form, for [your own layout](layouts.md) |
 | `render_response(html_form, request)` | The page around the form |
 | `get_csrf_token(request)` | Where the CSRF token comes from |
@@ -52,6 +55,8 @@ Override these methods to change how a view behaves:
 | `novalidate` | `True` by default; `False` turns browser validation back on |
 | `upload_url` | Where [background uploads](uploads.md) go |
 | `upload_options` | Further FilePond options |
+| `upload_label` | The name a [read-only view](readonly.md) shows for an upload id |
+| `messages` | Interface texts; `Form` views set this from `get_messages` |
 
 ## CSRF protection
 

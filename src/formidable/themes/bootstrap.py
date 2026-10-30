@@ -21,6 +21,12 @@ BOOTSTRAP = Theme(
     button="btn btn-primary me-2",
     row_button="btn btn-outline-secondary btn-sm",
     container="container py-4",
+    summary="alert alert-danger",
+    status="alert alert-success",
+    steps="nav nav-pills mb-3",
+    step="nav-item",
+    step_link="nav-link",
+    step_current="active",
     # checkboxes need a `.form-check` wrapper, the label after the input
     templates=(str(Path(__file__).parent / "bootstrap_templates"),),
     stylesheets=(

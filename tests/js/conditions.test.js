@@ -76,6 +76,25 @@ describe("operators", () => {
   });
 });
 
+describe("answers from another step", () => {
+  test("a hidden input answers", () => {
+    form(when("a", "equals", "1"), '<input type="hidden" name="a" value="1">');
+    evaluate();
+    expect(document.getElementById("box").style.display).toBe("");
+  });
+
+  test("several hidden inputs answer like a multi-select", () => {
+    const source = `<input type="hidden" name="a" value="1">
+      <input type="hidden" name="a" value="2">`;
+    form(when("a", "equals", "2"), source);
+    evaluate();
+    expect(document.getElementById("box").style.display).toBe("");
+    form(when("a", "equals", "3"), source);
+    evaluate();
+    expect(document.getElementById("box").style.display).toBe("none");
+  });
+});
+
 describe("logic and formats", () => {
   const both = logic => ({
     logic,

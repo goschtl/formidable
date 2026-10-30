@@ -77,6 +77,21 @@ class UIField(BaseModel):
             {"conditions": self.conditions, "logic": self.condition_logic})
 
     @property
+    def condition_data(self) -> dict | None:
+        """The parsed conditions: `{"conditions": [...], "logic": ...}`."""
+        text = self.conditions_json
+        if not text:
+            return None
+        try:
+            data = json.loads(text)
+        except ValueError:
+            # older generated templates use single quotes
+            data = json.loads(text.replace("'", '"'))
+        if "field" in data and "operator" in data:
+            return {"conditions": [data], "logic": "and"}
+        return data
+
+    @property
     def needs_conditions_script(self) -> bool:
         return bool(self.conditions_json
                     or "data-conditional-options" in self.attributes)

@@ -23,6 +23,10 @@ class Admin(Form):
 theme's stylesheets and scripts. Without a theme, the output is clean HTML with
 stable classes that you can style yourself.
 
+Besides the class names for fields, `summary` styles the [error
+summary](accessibility.md), `status` a message such as "saved", and `steps`,
+`step`, `step_link` and `step_current` the list of [steps](wizard.md).
+
 ## Writing a theme
 
 `src/formidable/themes/bootstrap.py` is a complete example and only about 30

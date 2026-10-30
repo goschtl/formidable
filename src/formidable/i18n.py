@@ -35,6 +35,12 @@ def current() -> Catalog:
     return _current
 
 
+def text(key: str, default: str, catalog: Catalog | None = None, **values) -> str:
+    """Interface text: `ui_*` entries live in the same catalogs."""
+    template = (_current if catalog is None else catalog).get(key, default)
+    return template.format(**values) if values else template
+
+
 def translate(error: t.Mapping[str, t.Any],
               catalog: Catalog | None = None) -> str:
     """Translate one entry of `ValidationError.errors()`."""
@@ -51,6 +57,20 @@ def translate(error: t.Mapping[str, t.Any],
 
 
 GERMAN: Catalog = {
+    "ui_error_summary": "Bitte korrigieren Sie Folgendes:",
+    "ui_yes": "Ja",
+    "ui_no": "Nein",
+    "ui_date_format": "%d.%m.%Y",
+    "ui_datetime_format": "%d.%m.%Y %H:%M",
+    "ui_steps": "Schritte",
+    "ui_step_position": "Schritt {number} von {total}: {title}",
+    "ui_next": "Weiter",
+    "ui_back": "Zurück",
+    "ui_save_draft": "Speichern und später fortsetzen",
+    "ui_send": "Absenden",
+    "ui_review": "Angaben prüfen",
+    "ui_edit": "Ändern",
+    "ui_saved": "Ihre Angaben wurden gespeichert. Sie können später hier fortfahren.",
     "missing": "Pflichtfeld.",
     "int_parsing": "Bitte eine ganze Zahl eingeben.",
     "int_type": "Bitte eine ganze Zahl eingeben.",

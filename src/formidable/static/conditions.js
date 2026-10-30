@@ -56,6 +56,9 @@
       var picked = controls.filter(function (el) { return el.checked; })[0];
       return picked ? picked.value : "";
     }
+    if (first.type === "hidden" && controls.length > 1) {
+      return controls.map(function (el) { return el.value; });
+    }
     if (first.multiple) {
       return Array.prototype.map.call(first.selectedOptions,
         function (option) { return option.value; });

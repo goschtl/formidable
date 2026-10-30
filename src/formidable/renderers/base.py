@@ -10,6 +10,7 @@ from markupsafe import Markup
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 from beartype.door import TypeHint, UnionTypeHint
+from formidable import i18n
 from formidable.themes import Theme, DEFAULT
 from formidable.ui import NO_UI, UIField
 
@@ -111,6 +112,7 @@ class IFieldRenderer:
     """Interface for all field renderers."""
 
     template: t.ClassVar[str] = ""
+    multiline: t.ClassVar[bool] = False  # read-only text keeps line breaks
 
     def __init__(self, optional: bool, renderer=None,
                  ui: UIField = NO_UI, description: str | None = None):
@@ -137,9 +139,36 @@ class IFieldRenderer:
             "control_attrs": self.ui.control_attributes,
             **context,
         }
+        name = context.get("name")
+        context.setdefault("described_by", " ".join(
+            f"field-{name}-{part}"
+            for part in ("error", "description", "help", "hint")
+            if context.get(part)) or None)
+        context.setdefault("invalid", "true" if context.get("error") else None)
         if self.renderer is not None:
             return self.renderer.render_template(template, **context)
         return render_template(template, theme=DEFAULT, **context)
+
+    def text(self, key: str, default: str, **values) -> str:
+        messages = self.renderer.messages if self.renderer is not None else None
+        return i18n.text(key, default, messages, **values)
+
+    def display(self, value: t.Any, field_type: type) -> str | None:
+        """The value as read-only text, None when there is nothing to show."""
+        if value is None or value == "" or value == []:
+            return None
+        return str(value)
+
+    def render_readonly(self, name: str, field_info: FieldInfo,
+                        field_type: type, value: t.Any = None) -> Markup:
+        """Render the field's value as text instead of a control."""
+        return self.render_template(
+            "formidable/readonly.pt",
+            name=name,
+            title=field_title(field_info, name),
+            text=self.display(value, field_type),
+            multiline=self.multiline,
+        )
 
     def render(self,
                name: str,
