@@ -478,6 +478,87 @@
 
                 
               
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
             </ul>
           </nav>
         
@@ -904,7 +985,7 @@
 <h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
 <p>formidable needs Python 3.12 or newer. It isn't on PyPI, so install it from
 GitHub:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span><span class="s2">"formidable @ git+https://github.com/goschtl/formidable@chameleon-rs"</span>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span><span class="s2">"formidable @ git+https://github.com/goschtl/formidable"</span>
 </code></pre></div>
 <h2 id="a-first-form">A first form<a class="headerlink" href="#a-first-form" title="Permanent link">&para;</a></h2>
 <p>A form is a Pydantic model plus a view. The view is a callable that takes a
@@ -956,7 +1037,7 @@ Without a <code>render_response</code>, the view returns only the <code>&lt;form
 what you want when your application has its own page layout.</p>
 <h2 id="the-example-application">The example application<a class="headerlink" href="#the-example-application" title="Permanent link">&para;</a></h2>
 <p><code>ex.py</code> in the repository shows nearly everything in this documentation:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>chameleon-rs<span class="w"> </span>https://github.com/goschtl/formidable.git
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/goschtl/formidable.git
 <span class="nb">cd</span><span class="w"> </span>formidable
 uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>ex.py
 </code></pre></div>
@@ -991,6 +1072,10 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <tr>
 <td><code>/upload-demo</code></td>
 <td><a href="../uploads/">Background uploads</a> with FilePond</td>
+</tr>
+<tr>
+<td><code>/wizard</code></td>
+<td><a href="../wizard/">Several steps and drafts</a>, with a review page</td>
 </tr>
 </tbody>
 </table>

@@ -465,6 +465,87 @@
 
                 
               
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./wizard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
             </ul>
           </nav>
         
@@ -905,15 +986,12 @@ the single source of truth.</p>
 <p><code>GET</code> renders the form. <code>POST</code> parses it, validates it and calls the action
 of the pressed button. If validation fails, the form comes back with the
 submitted values and an error message at each field.</p>
-<div class="admonition note">
-<p class="admonition-title">Which version this describes</p>
-<p>This documentation describes the <code>chameleon-rs</code> branch, where all markup
-lives in Chameleon templates. <code>main</code> does not have these templates, UI
-schemas or background uploads yet.</p>
-</div>
 <h2 id="whats-included">What's included<a class="headerlink" href="#whats-included" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><a href="fields/">Fields and widgets</a></strong>: every model field becomes a widget, including nested models and repeatable rows.</li>
+<li><strong><a href="wizard/">Multi-step forms and drafts</a></strong>: one model over several pages, to continue later.</li>
+<li><strong><a href="readonly/">Read-only views</a></strong>: the answers as text, for review and confirmation pages.</li>
+<li><strong><a href="accessibility/">Accessibility</a></strong>: an error summary and linked messages for screen readers.</li>
 <li><strong><a href="layouts/">Your own form layout</a></strong>: place each field yourself in a Chameleon template.</li>
 <li><strong><a href="ui-schema/">UI schemas</a></strong>: titles, help texts, units, masks and more, kept apart from the model.</li>
 <li><strong><a href="conditions/">Conditional fields</a></strong>: show and hide fields without jQuery.</li>

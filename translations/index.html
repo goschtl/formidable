@@ -409,6 +409,87 @@
 
                 
               
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
             </ul>
           </nav>
         
@@ -707,6 +788,23 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Translations
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="././" class="md-nav__link md-nav__link--active">
         
   
@@ -722,6 +820,37 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#interface-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Interface texts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -779,6 +908,11 @@
                       
                     
                     
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
                   
                   <div class="md-sidebar__inner">
                     
@@ -790,6 +924,25 @@
   
     
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#interface-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Interface texts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -826,6 +979,40 @@ Pydantic's English.</p>
         <span class="o">...</span>
 </code></pre></div>
 <p>Your own <code>PydanticCustomError</code> types translate the same way.</p>
+<h2 id="interface-texts">Interface texts<a class="headerlink" href="#interface-texts" title="Permanent link">&para;</a></h2>
+<p>The same catalog holds interface texts, under keys starting with <code>ui_</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ui_error_summary</code></td>
+<td>The heading of the <a href="../accessibility/">error summary</a></td>
+</tr>
+<tr>
+<td><code>ui_yes</code>, <code>ui_no</code></td>
+<td>Checkboxes in a <a href="../readonly/">read-only view</a></td>
+</tr>
+<tr>
+<td><code>ui_date_format</code>, <code>ui_datetime_format</code></td>
+<td>Dates in a read-only view, in <code>strftime</code> format</td>
+</tr>
+<tr>
+<td><code>ui_next</code>, <code>ui_back</code>, <code>ui_send</code>, <code>ui_save_draft</code></td>
+<td>The buttons of a <a href="../wizard/">Wizard</a></td>
+</tr>
+<tr>
+<td><code>ui_steps</code>, <code>ui_step_position</code>, <code>ui_review</code>, <code>ui_edit</code>, <code>ui_saved</code></td>
+<td>The other texts of a Wizard</td>
+</tr>
+</tbody>
+</table>
+<p>The "Add" and "Remove" buttons of list rows and the "please choose the file
+again" hint are still fixed English.</p>
 <p>The labels of the upload widget are separate: pass <code>i18n.UPLOAD_GERMAN</code> as
 <code>upload_options</code>, see <a href="../uploads/">File uploads</a>.</p>
 

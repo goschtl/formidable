@@ -14,7 +14,7 @@
       
       
       
-        <link rel="prev" href="../validation/">
+        <link rel="prev" href="../accessibility/">
       
       
         <link rel="next" href="../templates/">
@@ -397,6 +397,87 @@
     
   
   Validation and errors
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
 
     
   </span>
@@ -1058,7 +1139,7 @@ ${form.scripts()}
 </tr>
 <tr>
 <td><code>form.form_errors()</code></td>
-<td>The block of model-level errors</td>
+<td>The <a href="../accessibility/">summary of all errors</a>, with model-level errors</td>
 </tr>
 <tr>
 <td><code>form.error('name')</code></td>
@@ -1089,8 +1170,8 @@ ${form.scripts()}
 <div class="admonition warning">
 <p class="admonition-title">Place every field</p>
 <p>A field you leave out isn't submitted. If it's required, validation fails,
-and since the message is rendered with the field, the form comes back with
-no visible reason. Keep this in mind especially when the model changes.</p>
+so the form can never be sent. <code>form.form_errors()</code> still names the field,
+which is why every layout should include it.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Keep <code>form.scripts()</code></p>

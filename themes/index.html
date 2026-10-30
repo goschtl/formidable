@@ -409,6 +409,87 @@
 
                 
               
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
             </ul>
           </nav>
         
@@ -901,6 +982,9 @@ with formidable.</p>
 <p><code>page(html_form, theme, title=...)</code> wraps a form in a full HTML page with the
 theme's stylesheets and scripts. Without a theme, the output is clean HTML with
 stable classes that you can style yourself.</p>
+<p>Besides the class names for fields, <code>summary</code> styles the <a href="../accessibility/">error
+summary</a>, <code>status</code> a message such as "saved", and <code>steps</code>,
+<code>step</code>, <code>step_link</code> and <code>step_current</code> the list of <a href="../wizard/">steps</a>.</p>
 <h2 id="writing-a-theme">Writing a theme<a class="headerlink" href="#writing-a-theme" title="Permanent link">&para;</a></h2>
 <p><code>src/formidable/themes/bootstrap.py</code> is a complete example and only about 30
 lines. Set class names on a <code>Theme</code>, and add <code>templates</code> where class names

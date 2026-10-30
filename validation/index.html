@@ -17,7 +17,7 @@
         <link rel="prev" href="../views/">
       
       
-        <link rel="next" href="../layouts/">
+        <link rel="next" href="../wizard/">
       
       
         
@@ -469,6 +469,87 @@
 
                 
               
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
             </ul>
           </nav>
         
@@ -894,8 +975,9 @@ validation back on.</p>
 </ul>
 <h2 id="where-errors-appear">Where errors appear<a class="headerlink" href="#where-errors-appear" title="Permanent link">&para;</a></h2>
 <p>Errors are routed by dot path to the exact widget, as a message plus an
-<code>invalid</code> class on the input. Errors from a model-level validator appear at
-the top of the form, unless they name a field:</p>
+<code>invalid</code> class on the input. A <a href="../accessibility/">summary</a> above the form lists
+them all with links. Errors from a model-level validator appear only there,
+unless they name a field:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">nickname_required_when_agreeing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">agree</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nickname</span><span class="p">:</span>

@@ -502,6 +502,87 @@
 
                 
               
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
             </ul>
           </nav>
         
@@ -995,6 +1076,18 @@ input.</p>
 <td>The assembled form; override for <a href="../layouts/">your own layout</a></td>
 </tr>
 <tr>
+<td><code>get_readonly(request, values, buttons)</code></td>
+<td>The values <a href="../readonly/">as text</a></td>
+</tr>
+<tr>
+<td><code>get_fields(request)</code></td>
+<td>Which top-level fields to show; all by default</td>
+</tr>
+<tr>
+<td><code>get_buttons(request)</code></td>
+<td>Which buttons to show; all by default</td>
+</tr>
+<tr>
 <td><code>bind(request, values, errors)</code></td>
 <td>A bound form, for <a href="../layouts/">your own layout</a></td>
 </tr>
@@ -1049,6 +1142,14 @@ input.</p>
 <tr>
 <td><code>upload_options</code></td>
 <td>Further FilePond options</td>
+</tr>
+<tr>
+<td><code>upload_label</code></td>
+<td>The name a <a href="../readonly/">read-only view</a> shows for an upload id</td>
+</tr>
+<tr>
+<td><code>messages</code></td>
+<td>Interface texts; <code>Form</code> views set this from <code>get_messages</code></td>
 </tr>
 </tbody>
 </table>

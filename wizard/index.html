@@ -1,0 +1,1288 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generate HTML forms from Pydantic models">
+      
+      
+      
+        <link rel="canonical" href="https://goschtl.github.io/formidable/wizard/">
+      
+      
+      
+        <link rel="prev" href="../validation/">
+      
+      
+        <link rel="next" href="../readonly/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.73">
+    
+    
+      
+        <title>Multi-step forms and drafts - formidable</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.4ab2de0c.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="formidable" class="md-header__button md-logo" aria-label="formidable" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            formidable
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Multi-step forms and drafts
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/goschtl/formidable" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    goschtl/formidable
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="formidable" class="md-nav__button md-logo" aria-label="formidable" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    formidable
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/goschtl/formidable" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    goschtl/formidable
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Building forms
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Building forms
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Fields and widgets
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../views/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Views and buttons
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Validation and errors
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Multi-step forms and drafts
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-behaves" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        How it behaves
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drafts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Drafts
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Drafts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-drafts-are-kept" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where drafts are kept
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whose-draft-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Whose draft it is
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Files
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-own-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Your own layout
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Texts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read-only views
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accessibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Layout and markup
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Layout and markup
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../layouts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Your own form layout
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Changing the markup
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../themes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Themes
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Presentation and behaviour
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Presentation and behaviour
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ui-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  UI schemas
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Conditional fields
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uploads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  File uploads
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../translations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Translations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Development
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-behaves" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        How it behaves
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drafts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Drafts
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Drafts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-drafts-are-kept" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where drafts are kept
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whose-draft-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Whose draft it is
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Files
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-own-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Your own layout
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Texts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+  
+  
+
+
+<h1 id="multi-step-forms-and-drafts">Multi-step forms and drafts<a class="headerlink" href="#multi-step-forms-and-drafts" title="Permanent link">&para;</a></h1>
+<p>A <code>Wizard</code> splits one model over several pages, keeps what was entered so far,
+and lets people continue later.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">formidable.wizard</span><span class="w"> </span><span class="kn">import</span> <span class="n">FileDraftStore</span><span class="p">,</span> <span class="n">Step</span><span class="p">,</span> <span class="n">Wizard</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ClaimForm</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"Name"</span><span class="p">)</span>
+    <span class="n">birthday</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"Birthday"</span><span class="p">)</span>
+    <span class="n">accident_day</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"Day of the accident"</span><span class="p">)</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"What happened?"</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Claim</span><span class="p">(</span><span class="n">Wizard</span><span class="p">):</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Step</span><span class="p">(</span><span class="s2">"person"</span><span class="p">,</span> <span class="s2">"Person"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"birthday"</span><span class="p">)),</span>
+        <span class="n">Step</span><span class="p">(</span><span class="s2">"accident"</span><span class="p">,</span> <span class="s2">"Accident"</span><span class="p">),</span>       <span class="c1"># all fields not in another step</span>
+    <span class="p">)</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">FileDraftStore</span><span class="p">(</span><span class="s2">"/var/lib/myapp/drafts"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ClaimForm</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">done</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>                          <span class="c1"># `data` is a validated ClaimForm</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_readonly</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">),</span> <span class="n">mimetype</span><span class="o">=</span><span class="s2">"text/html"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>/wizard</code> in <code>ex.py</code> is a full example. It needs nothing but the server: no
+JavaScript, and the browser's back button works.</p>
+<h2 id="how-it-behaves">How it behaves<a class="headerlink" href="#how-it-behaves" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>One model.</strong> Steps are lists of its top-level fields, so a generated model
+  needs no changes and its validators stay in one place. Every field must be in
+  a step.</li>
+<li><strong>Next</strong> saves the step and checks its fields. Errors from other steps wait for
+  their turn.</li>
+<li><strong>Back</strong> saves without checking, so nothing is lost.</li>
+<li><strong>A review page</strong> shows everything as <a href="../readonly/">text</a>, with a link to change
+  each step. Set <code>review = False</code> to send from the last step instead.</li>
+<li><strong>Send</strong> validates the whole model. If that fails, it goes to the first step
+  with an error. <code>done</code> runs only with valid data, and the draft is deleted
+  afterwards.</li>
+<li><strong>Conditions</strong> work across steps. Answers from other steps travel along in
+  hidden inputs for the script to read, and the server ignores them. A step with
+  nothing to show is skipped.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Cross-field validators run late</p>
+<p>Pydantic only runs a <code>model_validator(mode="after")</code> once every field is
+valid, which usually means at the end. Its error then leads back to the step
+with that field, or shows on the review page if it names no field.</p>
+</div>
+<h2 id="drafts">Drafts<a class="headerlink" href="#drafts" title="Permanent link">&para;</a></h2>
+<p>Everything entered goes straight into a draft store, as submitted. <strong>Save and
+continue later</strong> adds a message and keeps the draft cookie for 30 days
+(<code>draft_max_age</code>). Set <code>drafts = False</code> to hide that button.</p>
+<p>A form with a single step is simply a form with drafts:</p>
+<div class="highlight"><pre><span></span><code><span class="n">steps</span> <span class="o">=</span> <span class="p">(</span><span class="n">Step</span><span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"Claim"</span><span class="p">),)</span>
+<span class="n">review</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div>
+<h3 id="where-drafts-are-kept">Where drafts are kept<a class="headerlink" href="#where-drafts-are-kept" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Store</th>
+<th>For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MemoryDraftStore()</code></td>
+<td>Tests and development; lost on restart, and not shared between processes</td>
+</tr>
+<tr>
+<td><code>FileDraftStore(folder)</code></td>
+<td>One server: JSON files only their owner can read</td>
+</tr>
+<tr>
+<td>Your own</td>
+<td>Anything with <code>load(key)</code>, <code>save(key, data)</code> and <code>delete(key)</code>, such as a database table</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Drafts hold personal data</p>
+<p><code>FileDraftStore</code> does not encrypt anything. Put drafts where you'd put the
+submitted forms, cover them in your retention rules, and delete old ones
+regularly, because nothing else does: <code>store.purge(max_age=30 * 24 * 3600)</code>.</p>
+</div>
+<h3 id="whose-draft-it-is">Whose draft it is<a class="headerlink" href="#whose-draft-it-is" title="Permanent link">&para;</a></h3>
+<p>By default, a random token in an HttpOnly cookie identifies the draft. The cookie
+ends with the browser session unless someone saves on purpose, so that the next
+person on a shared computer doesn't find their answers.</p>
+<p>With logins, return the user's id instead. That needs no cookie, and people can
+continue on another device:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_draft_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"claim:</span><span class="si">{</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div>
+<h2 id="files">Files<a class="headerlink" href="#files" title="Permanent link">&para;</a></h2>
+<p>A draft can't hold an uploaded file, so a <code>Wizard</code> refuses <code>UploadedFile</code> and
+<code>FileUpload</code> with a clear error. Use <a href="../uploads/">background uploads</a>: the field
+is <code>list[str]</code>, and the file is already stored when the step is saved. Set
+<code>upload_label</code> so the review page shows file names.</p>
+<h2 id="your-own-layout">Your own layout<a class="headerlink" href="#your-own-layout" title="Permanent link">&para;</a></h2>
+<p>Override <code>render_step</code>, and show where the user is with <code>render_steps</code>, which
+<code>get_form</code> adds for you above the form:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">render_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">errors</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">"claim_step.pt"</span><span class="p">,</span> <span class="n">dirs</span><span class="o">=</span><span class="p">(</span><span class="s2">"templates"</span><span class="p">,),</span>
+                           <span class="n">form</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">errors</span><span class="p">))</span>
+</code></pre></div>
+<p><code>form</code> then only has the fields of the current step. In a template that handles
+several steps, check for a field with <code>'name' in form</code>, or use one
+template per step, choosing it with <code>self.current_step(request, draft)</code>.</p>
+<h2 id="texts">Texts<a class="headerlink" href="#texts" title="Permanent link">&para;</a></h2>
+<p>Buttons and labels come from the <a href="../translations/">catalog</a>: <code>ui_next</code>, <code>ui_back</code>,
+<code>ui_send</code>, <code>ui_save_draft</code>, <code>ui_saved</code>, <code>ui_review</code>, <code>ui_edit</code>, <code>ui_steps</code> and
+<code>ui_step_position</code>. <code>i18n.GERMAN</code> has them all.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy","navigation.sections"],"redirect":null,"search":"../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.77dd0ce9.min.js"></script>
+      
+    
+  </body>
+</html>
