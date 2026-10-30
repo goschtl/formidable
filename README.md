@@ -298,16 +298,14 @@ FormRenderer(ui=load_ui("ui_schema.json"))
 ```
 
 Conditions render as `data-conditions`. Showing and hiding is done by
-`conditionalfield.js` from `nva.dynamic_form_elements` (optional, from
-the private index), the same script the deform forms use. It is a
-fanstatic resource, so call `js.need()` when rendering the page and wrap
-your application in `fanstatic.Fanstatic`. The browser only decides what
-is visible, so conditional requirements still belong in a model
-validator.
+`conditionalfield.js` from `nva.dynamic_form_elements`, the same script
+the deform forms use. It is a fanstatic resource, so call `js.need()`
+when rendering the page and wrap your application in
+`fanstatic.Fanstatic`. The browser only decides what is visible, so
+conditional requirements still belong in a model validator.
 
-See `/rueckfrage` in `ex.py`, which needs the package installed:
-`uv pip install -e ../nva.dynamic_form_elements`. `uv sync` removes it
-again.
+See `/rueckfrage` in `ex.py`, which ships its own copy of the script so
+that `uv sync && uv run python ex.py` works without the private index.
 
 `ui:attributes` and `ui:mask` are not supported yet.
 

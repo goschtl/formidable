@@ -2,8 +2,8 @@ import datetime
 import enum
 import typing as t
 from pathlib import Path
-from fanstatic import Fanstatic
-from nva.dynamic_form_elements import js as conditional_fields
+from fanstatic import Fanstatic, Library, Resource, get_library_registry
+from js.jquery import jquery
 from autoroutes import Routes as Autoroutes
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
@@ -185,6 +185,12 @@ class Feedback(Form):
 
 EX_FORMS = Path(__file__).parent / "ex_forms"
 LD_000_0V1100_UI = load_ui(EX_FORMS / "LD_000_0V1100" / "ui_schema.json")
+
+
+# A copy of nva.dynamic_form_elements' script, so the example runs on its own
+library = Library("formidable_example", "ex_forms/static")
+get_library_registry().add(library)
+conditional_fields = Resource(library, "conditionalfield.js", depends=[jquery])
 
 
 class Rueckfrage(Form):
