@@ -1,11 +1,15 @@
+import datetime
+import enum
+import typing as t
 from autoroutes import Routes as Autoroutes
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, create_model, model_validator
 from pydantic_core import PydanticCustomError
 from formidable.fields import UploadedFile
 from formidable.views import Form, trigger
-from formidable.renderers import FormRenderer, StringFieldRenderer
+from formidable.renderers import (
+    FormRenderer, RadioFieldRenderer, StringFieldRenderer)
 from formidable import i18n, themes
 from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
@@ -39,12 +43,24 @@ class User(BaseModel):
     name: str = "Jane Doe"
 
 
+class Salutation(enum.Enum):
+    mr = "mr"
+    mrs = "mrs"
+    other = "other"
+
+
 # --- Pydantic model example ---
 class ExampleForm(BaseModel):
+    salutation: Salutation = Field(..., title="Salutation")
     name: str = Field(..., title="Your Name")
     age: int = Field(..., title="Age")
     agree: bool = Field(..., title="I agree to terms")
     nickname: str | None = Field(None, title="Nickname (optional)")
+    birthday: datetime.date | None = Field(None, title="Birthday")
+    bio: str | None = Field(None, title="Bio",
+                            json_schema_extra={"widget": "textarea"})
+    interests: list[t.Literal["sports", "music", "tech"]] = Field(
+        default_factory=list, title="Interests")
     avatar: UploadedFile | None = Field(None, title="Avatar")
     users: list[User] = Field(default_factory=list, title="Users")
 
@@ -58,14 +74,34 @@ class ExampleForm(BaseModel):
         return self
 
 
+def available_flavors(request) -> tuple[str, ...]:
+    """A selection source that depends on the request — in real life a
+    database query, the logged-in user's permissions, the tenant, ..."""
+    flavors = ("vanilla", "chocolate", "strawberry")
+    if "premium" in request.args:
+        flavors += ("pistachio", "black truffle")
+    return flavors
+
+
 class Index(Form):
     def get_schema(self, request):
-        return ExampleForm
+        # deform's "deferred" pattern: bind the schema to the request.
+        # Validation then only accepts exactly these choices.
+        flavors = available_flavors(request)
+        return create_model(
+            "RequestExampleForm",
+            __base__=ExampleForm,
+            flavor=(t.Literal[flavors], Field("vanilla", title="Flavor")),
+        )
 
     def get_renderer(self, request):
         return FormRenderer(
             theme=self.get_theme(request),
-            custom_widgets={"name": CustomFieldRenderer},
+            custom_widgets={
+                "name": CustomFieldRenderer,
+                # same choice source as the select, radio markup
+                "salutation": RadioFieldRenderer,
+            },
         )
 
     def render_response(self, html_form, request):
@@ -86,9 +122,63 @@ class MaterialIndex(Index):
     theme = MATERIAL  # per-view override of the site default
 
 
+# --- Explicit field rendering with an own template ---
+class FeedbackForm(BaseModel):
+    salutation: Salutation = Field(..., title="Salutation")
+    name: str = Field(..., title="Name")
+    email: str = Field(..., title="E-Mail")
+    nickname: str | None = Field(None, title="Nickname")
+
+
+FEEDBACK_TEMPLATE = """<form {attrs}>
+  {form_errors}
+  <div class="row">
+    <div class="col-6">
+      {salutation}
+      {name}
+    </div>
+    <div class="col-6">
+      {email}
+      {nickname}
+    </div>
+  </div>
+  {buttons}
+</form>
+{scripts}"""
+
+
+class Feedback(Form):
+    def get_schema(self, request):
+        return FeedbackForm
+
+    def get_form(self, request, values=None, errors=None):
+        # explicit, template-driven rendering: place each field yourself
+        bound = self.bind(request, values, errors)
+        return FEEDBACK_TEMPLATE.format(
+            attrs=bound.attrs,
+            form_errors=bound.form_errors(),
+            salutation=bound["salutation"],
+            name=bound["name"],
+            email=bound["email"],
+            nickname=bound["nickname"],
+            buttons=bound.buttons(),
+            scripts=bound.scripts(),
+        )
+
+    def render_response(self, html_form, request):
+        return Response(
+            page(html_form, self.get_theme(request), title="own template"),
+            mimetype="text/html")
+
+    @trigger(name="send", title="Send", validate=True)
+    def send(self, request, data):
+        return Response(f"Danke, {data.name}!", mimetype="text/plain")
+
+
 # URL routing rules
 routes.add("/", endpoint=Index())
 routes.add("/material", endpoint=MaterialIndex())
+routes.add("/custom", endpoint=Feedback())
 
 
 class LimitedRequest(Request):

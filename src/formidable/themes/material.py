@@ -86,6 +86,8 @@ class MaterialFileRenderer(FileFieldRenderer):
 
 MATERIAL = Theme(
     input="validate",
+    # Materialize selects normally need JS init; browser-default skips it
+    select="browser-default",
     checkbox="filled-in",
     invalid="invalid",
     error="helper-text red-text",

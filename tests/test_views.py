@@ -14,6 +14,8 @@ class Schema(BaseModel):
 
 
 class Index(Form):
+    csrf = False
+
     def get_schema(self, request):
         return Schema
 
@@ -98,6 +100,8 @@ class NestedSchema(BaseModel):
 
 
 class NestedIndex(Form):
+    csrf = False
+
     def get_schema(self, request):
         return NestedSchema
 
@@ -186,6 +190,8 @@ def test_model_level_error_renders_at_form_top():
             return self
 
     class CondIndex(Form):
+        csrf = False
+
         def get_schema(self, request):
             return Conditional
 
@@ -223,6 +229,8 @@ def test_model_level_error_can_bind_to_a_field():
             return self
 
     class CondIndex(Form):
+        csrf = False
+
         def get_schema(self, request):
             return Conditional
 

@@ -28,6 +28,7 @@ BOOTSTRAP = Theme(
     wrapper="mb-3",
     label="form-label",
     input="form-control",
+    select="form-select",
     checkbox="form-check-input",
     invalid="is-invalid",
     error="invalid-feedback d-block",

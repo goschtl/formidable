@@ -1,10 +1,12 @@
+import hmac
+import secrets
 import typing as t
 from inspect import unwrap, getmembers, isroutine
 from pydantic import BaseModel, ValidationError
 from werkzeug.wrappers import Response
 from formidable import i18n, themes
 from formidable.data import unflatten, normalize
-from formidable.renderers import FormRenderer
+from formidable.renderers import CSRF_FIELD, FormRenderer
 
 
 class Button(t.NamedTuple):
@@ -65,6 +67,11 @@ class Form:
     methods: t.ClassVar[tuple[str, ...]] = ("GET", "POST")
     theme: t.ClassVar[themes.Theme | None] = None  # None: site default
     error_messages: t.ClassVar[i18n.Catalog | None] = None  # None: site default
+    # CSRF protection (double-submit cookie). Disable per view with
+    # `csrf = False` when the hosting framework brings its own.
+    csrf: t.ClassVar[bool] = True
+    csrf_field: t.ClassVar[str] = CSRF_FIELD
+    csrf_cookie: t.ClassVar[str] = "formidable-csrf"
 
     def __init__(self):
         triggers = sorted(
@@ -103,6 +110,27 @@ class Form:
     def get_renderer(self, request):
         return FormRenderer(theme=self.get_theme(request))
 
+    def get_csrf_token(self, request) -> str | None:
+        """The request's CSRF token: the cookie's, or a fresh one.
+
+        Cached in the WSGI environ so form rendering and the
+        Set-Cookie in __call__ agree within one request.
+        """
+        if not self.csrf:
+            return None
+        token = request.environ.get("formidable.csrf_token")
+        if not token:
+            token = request.cookies.get(self.csrf_cookie) \
+                or secrets.token_urlsafe(32)
+            request.environ["formidable.csrf_token"] = token
+        return token
+
+    def check_csrf(self, request) -> bool:
+        cookie = request.cookies.get(self.csrf_cookie)
+        submitted = request.form.get(self.csrf_field)
+        return bool(cookie and submitted
+                    and hmac.compare_digest(cookie, submitted))
+
     def get_data(self, request) -> dict[str, t.Any]:
         """Extract and normalize submitted form data.
 
@@ -112,8 +140,12 @@ class Form:
         fields fall back to their defaults and required ones fail as
         "missing".
         """
-        flat = request.form.to_dict()
-        flat.pop(self.button_name, None)
+        flat = {}
+        for key, submitted in request.form.lists():
+            if key in (self.button_name, self.csrf_field):
+                continue
+            # repeated keys (multi-selects, checkbox groups) stay lists
+            flat[key] = submitted[0] if len(submitted) == 1 else submitted
         for key, storage in request.files.items():
             # an empty file input submits a part with no filename: treat
             # it as absent so defaults apply
@@ -126,16 +158,32 @@ class Form:
         schema = self.get_schema(request)
         renderer = self.get_renderer(request)
         return renderer(schema, values=values, errors=errors,
-                        buttons=self.buttons.values())
+                        buttons=self.buttons.values(),
+                        csrf_token=self.get_csrf_token(request))
+
+    def bind(self, request, values=None, errors=None):
+        """A BoundForm for explicit field rendering in own templates.
+
+        Typically used from an overridden get_form(), which may return
+        the template output as a plain string.
+        """
+        renderer = self.get_renderer(request)
+        return renderer.bind(self.get_schema(request), values=values,
+                             errors=errors, buttons=self.buttons.values(),
+                             csrf_token=self.get_csrf_token(request))
 
     def render_response(self, html_form, request) -> Response:
         """Hook: wrap the rendered form in a full page if desired."""
-        return Response(html_form.render(), mimetype="text/html")
+        body = html_form.render() if hasattr(html_form, "render") \
+            else str(html_form)
+        return Response(body, mimetype="text/html")
 
     def GET(self, request):
         return self.render_response(self.get_form(request), request)
 
     def POST(self, request):
+        if self.csrf and not self.check_csrf(request):
+            return Response("Invalid CSRF token.", status=403)
         # A trigger value may carry an argument: `remove_user:1`.
         name, _, arg = (request.form.get(self.button_name) or "").partition(":")
         btn = self.buttons.get(name) if name else None
@@ -180,4 +228,11 @@ class Form:
                 status=405,
                 headers={"Allow": ", ".join(self.methods)},
             )
-        return endpoint(request)
+        response = endpoint(request)
+        if self.csrf and isinstance(response, Response):
+            token = self.get_csrf_token(request)
+            if token and request.cookies.get(self.csrf_cookie) != token:
+                response.set_cookie(
+                    self.csrf_cookie, token,
+                    httponly=True, samesite="Lax")
+        return response

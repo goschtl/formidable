@@ -25,6 +25,7 @@ class Theme:
     wrapper: str = ""       # the <div> wrapping label + input
     label: str = ""
     input: str = ""         # text/number/file inputs
+    select: str = ""
     checkbox: str = ""
     invalid: str = ""       # added to an input that has an error
     error: str = ""         # added to the error <span>
@@ -67,6 +68,8 @@ def page(html_form, theme: Theme = DEFAULT, title: str = "") -> str:
     scripts = "\n  ".join(
         f'<script src="{src}"></script>' for src in theme.scripts)
     main_attr = f' class="{theme.container}"' if theme.container else ""
+    body = html_form.render() if hasattr(html_form, "render") \
+        else str(html_form)
     return f"""<!doctype html>
 <html>
 <head>
@@ -77,7 +80,7 @@ def page(html_form, theme: Theme = DEFAULT, title: str = "") -> str:
 </head>
 <body>
   <main{main_attr}>
-    {html_form.render()}
+    {body}
   </main>
   {scripts}
 </body>

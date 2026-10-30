@@ -17,6 +17,8 @@ class Schema(BaseModel):
 
 
 class Index(Form):
+    csrf = False
+
     def get_schema(self, request):
         return Schema
 
@@ -108,6 +110,8 @@ class StreamSchema(BaseModel):
 
 
 class StreamIndex(Form):
+    csrf = False
+
     def get_schema(self, request):
         return StreamSchema
 
@@ -154,6 +158,8 @@ def test_nested_upload_via_dot_path():
         docs: list[Doc] = Field(default_factory=list)
 
     class DocsIndex(Form):
+        csrf = False
+
         def get_schema(self, request):
             return WithDocs
 

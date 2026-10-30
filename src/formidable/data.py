@@ -66,4 +66,8 @@ def normalize(schema: type[BaseModel], data: dict) -> dict:
                 for entry in entries if isinstance(entries, list) else []:
                     if isinstance(entry, dict):
                         normalize(item_hint, entry)
+            elif name in data and not isinstance(data[name], list):
+                # a multi-select with a single selection submits one
+                # plain value; a list field still wants a list
+                data[name] = [data[name]]
     return data
