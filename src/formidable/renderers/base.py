@@ -9,6 +9,7 @@ from beartype.door import TypeHint, UnionTypeHint
 from chameleon_rs import PageTemplateLoader
 from chameleon_rs.template import HTML5_BOOLEAN_ATTRIBUTES
 from markupsafe import Markup
+from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -75,6 +76,24 @@ def resolve(annotation) -> tuple[TypeHint, bool]:
     if getattr(hint.hint, "__metadata__", None) is not None:
         hint = TypeHint(hint.hint.__origin__)
     return hint, optional
+
+
+def check_schema(schema: type[BaseModel], _seen: frozenset = frozenset()) -> None:
+    """Refuse a SQLModel table, also nested: it skips validation when created,
+    so invalid input would pass, and its primary key would become an input."""
+    if schema in _seen:
+        return
+    if schema.model_config.get("table"):
+        raise TypeError(
+            f"{schema.__name__} is a SQLModel table: it does not validate its "
+            "input, and its primary key would become a form field. Use a model "
+            "without table=True for the form, and create the table row from it.")
+    for model_field in schema.model_fields.values():
+        hint = resolve(model_field.annotation)[0].hint
+        if t.get_origin(hint) is list and (args := t.get_args(hint)):
+            hint = resolve(args[0])[0].hint
+        if isinstance(hint, type) and issubclass(hint, BaseModel):
+            check_schema(hint, _seen | {schema})
 
 
 def field_title(field_info: FieldInfo, name: str) -> str:

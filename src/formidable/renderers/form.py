@@ -22,6 +22,7 @@ from formidable.renderers.base import (
     UPLOAD_SCRIPTS,
     UPLOAD_STYLE,
     IFieldRenderer,
+    check_schema,
     field_title,
     field_value,
     is_choice,
@@ -299,6 +300,8 @@ class FormRenderer:
                  hidden: t.Mapping[str, t.Any] | None = None) -> Markup:
         """The whole form. `readonly` shows the values as text instead of
         controls, and `only` limits it to these top-level fields."""
+        if not readonly:
+            check_schema(model_cls)
         values = as_values(values)
         errors = errors or {}
         self.needs_script = False
@@ -380,6 +383,8 @@ class BoundForm:
                  csrf_token: str | None = None, readonly: bool = False,
                  only: t.Collection[str] | None = None,
                  hidden: t.Mapping[str, t.Any] | None = None):
+        if not readonly:
+            check_schema(model_cls)
         self.renderer = renderer
         self.model_cls = model_cls
         self.values = as_values(values)
