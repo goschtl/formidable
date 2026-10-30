@@ -23,6 +23,9 @@ class SelectFieldRenderer(IFieldRenderer):
     template = "formidable/select.pt"
 
     def choices(self, field_type) -> list[tuple[str, str]]:
+        if self.ui.options:
+            return [(str(option.value), option.label)
+                    for option in self.ui.options]
         if isinstance(field_type, type) and issubclass(field_type, enum.Enum):
             return [(str(member.value), member.name.replace("_", " ").title())
                     for member in field_type]

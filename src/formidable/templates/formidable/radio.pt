@@ -1,8 +1,9 @@
-<fieldset class="${classes('field-radiogroup', theme.fieldset)}">
+<fieldset class="${classes('field-radiogroup', theme.fieldset)}" data-conditions="${conditions}">
   <legend class="${classes(theme.legend)}">${title}</legend>
   <div tal:repeat="option options" class="field-radio-option">
     <input checked="${option.selected}" class="${css}" id="field-${name}-${repeat.option.index}" name="${name}" required="${required}" type="radio" value="${option.value}">
     <label for="field-${name}-${repeat.option.index}">${option.title}</label>
   </div>
   ${render_partial('formidable/error.pt', error=error, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, theme=theme)}
 </fieldset>

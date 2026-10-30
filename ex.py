@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import enum
 import typing as t
@@ -9,21 +10,24 @@ from pydantic import BaseModel, Field, create_model, model_validator
 from pydantic_core import PydanticCustomError
 from formidable.fields import UploadedFile
 from formidable.views import Form, trigger
-from formidable.renderers import (
-    FormRenderer, RadioFieldRenderer, StringFieldRenderer)
+from formidable.renderers import FormRenderer, RadioFieldRenderer, StringFieldRenderer
 from formidable import i18n, themes
 from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
 from formidable.themes.material import MATERIAL
+from formidable.ui import load_ui
+from ex_forms.LD_000_0V1100.model import LD_000_0V1100Model
 
 
-themes.use(BOOTSTRAP)  # the site-wide default
-i18n.use({
-    **i18n.GERMAN,
-    # application-defined error types translate the same way
-    "nickname_required": "Wenn Sie den Bedingungen zustimmen, "
-                         "ist ein Spitzname erforderlich.",
-})
+themes.use(MATERIAL)  # the site-wide default
+i18n.use(
+    {
+        **i18n.GERMAN,
+        # application-defined error types translate the same way
+        "nickname_required": "Wenn Sie den Bedingungen zustimmen, "
+        "ist ein Spitzname erforderlich.",
+    }
+)
 
 routes = Autoroutes()
 
@@ -54,10 +58,10 @@ class ExampleForm(BaseModel):
     agree: bool = Field(..., title="I agree to terms")
     nickname: str | None = Field(None, title="Nickname (optional)")
     birthday: datetime.date | None = Field(None, title="Birthday")
-    bio: str | None = Field(None, title="Bio",
-                            json_schema_extra={"widget": "textarea"})
+    bio: str | None = Field(None, title="Bio", json_schema_extra={"widget": "textarea"})
     interests: list[t.Literal["sports", "music", "tech"]] = Field(
-        default_factory=list, title="Interests")
+        default_factory=list, title="Interests"
+    )
     avatar: UploadedFile | None = Field(None, title="Avatar")
     users: list[User] = Field(default_factory=list, title="Users")
 
@@ -67,7 +71,8 @@ class ExampleForm(BaseModel):
             raise PydanticCustomError(
                 "nickname_required",
                 "When agreeing to the terms, a nickname is required.",
-                {"field": "nickname"})
+                {"field": "nickname"},
+            )
         return self
 
 
@@ -105,7 +110,8 @@ class Index(Form):
     def render_response(self, html_form, request):
         return Response(
             page(html_form, self.get_theme(request), title="formidable demo"),
-            mimetype="text/html")
+            mimetype="text/html",
+        )
 
     @trigger(name="save", title="Save", validate=True)
     def save(self, request, data):
@@ -166,15 +172,53 @@ class Feedback(Form):
     def render_response(self, html_form, request):
         return Response(
             page(html_form, self.get_theme(request), title="own template"),
-            mimetype="text/html")
+            mimetype="text/html",
+        )
 
     @trigger(name="send", title="Send", validate=True)
     def send(self, request, data):
         return Response(f"Danke, {data.name}!", mimetype="text/plain")
 
 
+# --- A generated model plus a UI schema, with conditional fields ---
+
+EX_FORMS = Path(__file__).parent / "ex_forms"
+LD_000_0V1100_UI = load_ui(EX_FORMS / "LD_000_0V1100" / "ui_schema.json")
+
+
+class Rueckfrage(Form):
+    theme = dataclasses.replace(BOOTSTRAP, scripts=(
+        "https://code.jquery.com/jquery-3.7.1.min.js",
+        "/static/conditionalfield.js",
+    ))
+
+    def get_schema(self, request):
+        return LD_000_0V1100Model
+
+    def get_renderer(self, request):
+        return FormRenderer(theme=self.get_theme(request), ui=LD_000_0V1100_UI)
+
+    def render_response(self, html_form, request):
+        return Response(
+            page(html_form, self.get_theme(request),
+                 title=LD_000_0V1100Model.__doc__.splitlines()[0]),
+            mimetype="text/html",
+        )
+
+    @trigger(name="send", title="Absenden", validate=True)
+    def send(self, request, data):
+        return Response(data.model_dump_json(indent=2), mimetype="text/plain")
+
+
+def conditionalfield_js(request):
+    return Response((EX_FORMS / "conditionalfield.js").read_text(encoding="utf-8"),
+                    mimetype="text/javascript")
+
+
 # URL routing rules
 routes.add("/", endpoint=Index())
+routes.add("/rueckfrage", endpoint=Rueckfrage())
+routes.add("/static/conditionalfield.js", endpoint=conditionalfield_js)
 routes.add("/material", endpoint=MaterialIndex())
 routes.add("/custom", endpoint=Feedback())
 

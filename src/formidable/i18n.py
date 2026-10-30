@@ -64,5 +64,8 @@ GERMAN: Catalog = {
     "less_than": "Der Wert muss kleiner als {lt} sein.",
     "less_than_equal": "Der Wert darf höchstens {le} betragen.",
     "enum": "Bitte einen gültigen Wert auswählen.",
+    "literal_error": "Bitte einen gültigen Wert auswählen.",
+    "string_pattern_mismatch": "Bitte prüfen Sie das Format der Eingabe.",
+    "date_from_datetime_parsing": "Bitte ein gültiges Datum eingeben.",
     "is_instance_of": "Ungültige Eingabe.",
 }

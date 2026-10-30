@@ -11,6 +11,7 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 from beartype.door import TypeHint, UnionTypeHint
 from formidable.themes import Theme, DEFAULT
+from formidable.ui import NO_UI, UIField
 
 
 OPTIONAL = TypeHint(None)
@@ -99,15 +100,24 @@ class IFieldRenderer:
 
     template: t.ClassVar[str] = ""
 
-    def __init__(self, optional: bool, renderer=None):
+    def __init__(self, optional: bool, renderer=None,
+                 ui: UIField = NO_UI, description: str | None = None):
         self.optional = optional
         self.renderer = renderer  # the owning FormRenderer, if any
+        self.ui = ui              # the field's UI schema entry
+        self.description = description
 
     @property
     def theme(self) -> Theme:
         return self.renderer.theme if self.renderer is not None else DEFAULT
 
     def render_template(self, template: str, /, **context) -> Markup:
+        context = {
+            "conditions": self.ui.conditions_json,
+            "description": self.description,
+            "placeholder": self.ui.placeholder,
+            **context,
+        }
         if self.renderer is not None:
             return self.renderer.render_template(template, **context)
         return render_template(template, theme=DEFAULT, **context)

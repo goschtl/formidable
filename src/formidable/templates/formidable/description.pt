@@ -1,0 +1,1 @@
+<small tal:condition="description" class="${classes('field-description', theme.hint)}">${description}</small>

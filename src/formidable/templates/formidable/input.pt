@@ -1,5 +1,6 @@
-<div class="${classes(theme.wrapper)}">
+<div class="${classes(theme.wrapper)}" data-conditions="${conditions}">
   <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
-  <input class="${css}" id="field-${name}" name="${name}" required="${required}" step="${step}" type="${input_type}" value="${value}">
+  <input class="${css}" id="field-${name}" name="${name}" placeholder="${placeholder}" required="${required}" step="${step}" type="${input_type}" value="${value}">
   ${render_partial('formidable/error.pt', error=error, theme=theme)}
+  ${render_partial('formidable/description.pt', description=description, theme=theme)}
 </div>

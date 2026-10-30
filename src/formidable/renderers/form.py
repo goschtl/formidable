@@ -1,6 +1,7 @@
 """The form renderer: widget registries, dispatch, whole-form and
 bound (template-driven) rendering."""
 
+import copy
 import datetime
 import typing as t
 from decimal import Decimal
@@ -11,6 +12,7 @@ from beartype.door import TypeHint
 from markupsafe import Markup
 from werkzeug.datastructures import FileStorage
 from formidable.themes import Theme, current
+from formidable.ui import NO_UI, UIField, ui_path
 from formidable.renderers.base import (
     CSRF_FIELD, IFieldRenderer, field_title, field_value,
     is_choice, render_template, resolve, widget_hint)
@@ -47,6 +49,13 @@ NAMED_WIDGETS = {
     "email": EmailFieldRenderer,
     "radio": RadioFieldRenderer,
     "select": SelectFieldRenderer,
+    "text": StringFieldRenderer,
+    "date": DateFieldRenderer,
+    "datetime": DateTimeFieldRenderer,
+    "datetime-local": DateTimeFieldRenderer,
+    "time": TimeFieldRenderer,
+    "checkbox": BoolFieldRenderer,
+    "file": FileFieldRenderer,
 }
 
 
@@ -57,7 +66,8 @@ class FormRenderer:
                  custom_widgets: dict[str, type[IFieldRenderer]] | None = None,
                  theme: Theme | None = None,
                  novalidate: bool = True,
-                 templates: t.Iterable[str | PathLike] = ()):
+                 templates: t.Iterable[str | PathLike] = (),
+                 ui: t.Mapping[str, UIField] | None = None):
         if theme is None:
             theme = current()  # the theme registered site-wide
         # explicit `widgets` beat the theme's, which beat the defaults
@@ -66,6 +76,7 @@ class FormRenderer:
         self.theme = theme
         # own templates beat the theme's, which beat the built-ins
         self.template_dirs = (*map(str, templates), *theme.templates)
+        self.ui = ui or {}
         # Server-side validation is the source of truth: `novalidate`
         # stops the browser from blocking submits, while the `required`
         # attributes stay in the markup for accessibility and styling.
@@ -74,12 +85,17 @@ class FormRenderer:
         self.needs_multipart = False
 
     def dispatch(self, name: str, token: TypeHint,
-                 model_field: FieldInfo | None = None
-                 ) -> type[IFieldRenderer] | None:
-        """Pick a widget: dot path, schema hint, type, then structure."""
+                 model_field: FieldInfo | None = None,
+                 ui: UIField = NO_UI) -> type[IFieldRenderer] | None:
+        """Pick a widget: dot path, UI schema, schema hint, type, then
+        structure."""
         if name in self.custom_widgets:
             return self.custom_widgets[name]
-        if model_field is not None and (hint_name := widget_hint(model_field)):
+        hint_name = ui.widget
+        if hint_name is None and model_field is not None:
+            hint_name = widget_hint(model_field)
+        # a checkbox with options is a group: left to the type dispatch
+        if hint_name and not (hint_name == "checkbox" and ui.options):
             if named := NAMED_WIDGETS.get(hint_name):
                 return named
         if widget := self.widgets.get(token):
@@ -132,11 +148,19 @@ class FormRenderer:
                      value: t.Any = None,
                      errors: dict[str, str] | None = None):
         token, optional = resolve(model_field.annotation)
-        widget = self.dispatch(name, token, model_field)
+        path = ui_path(name)
+        ui = self.ui.get(path, NO_UI)
+        widget = self.dispatch(name, token, model_field, ui)
         if widget is None:
             return self.render_template(
                 "formidable/unknown.pt", annotation=model_field.annotation)
-        renderer: IFieldRenderer = widget(optional, self)
+        # list rows number their own titles
+        if ui.title and not path.endswith(".items"):
+            model_field = copy.copy(model_field)
+            model_field.title = ui.title
+        renderer: IFieldRenderer = widget(
+            optional, self, ui=ui,
+            description=ui.description or model_field.description)
         return renderer.render(
             name, model_field, token.hint, value=value, errors=errors)
 
