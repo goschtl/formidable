@@ -13,7 +13,8 @@ from pydantic import BaseModel, Field, create_model, model_validator
 from pydantic_core import PydanticCustomError
 from formidable.fields import UploadedFile
 from formidable.views import Form, trigger
-from formidable.renderers import FormRenderer, RadioFieldRenderer, StringFieldRenderer
+from formidable.renderers import (
+    FormRenderer, RadioFieldRenderer, StringFieldRenderer, render_template)
 from formidable import i18n, themes
 from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
@@ -33,6 +34,8 @@ i18n.use(
 )
 
 routes = Autoroutes()
+
+EX_TEMPLATES = Path(__file__).parent / "ex_templates"
 
 
 class CustomFieldRenderer(StringFieldRenderer):
@@ -129,47 +132,31 @@ class MaterialIndex(Index):
 
 
 # --- Explicit field rendering with an own template ---
+class Anschrift(BaseModel):
+    strasse: str = Field(..., title="Straße")
+    plz: str = Field(..., title="PLZ")
+    ort: str = Field(..., title="Ort")
+
+
 class FeedbackForm(BaseModel):
     salutation: Salutation = Field(..., title="Salutation")
     name: str = Field(..., title="Name")
     email: str = Field(..., title="E-Mail")
     nickname: str | None = Field(None, title="Nickname")
-
-
-FEEDBACK_TEMPLATE = """<form {attrs}>
-  {form_errors}
-  <div class="row">
-    <div class="col-6">
-      {salutation}
-      {name}
-    </div>
-    <div class="col-6">
-      {email}
-      {nickname}
-    </div>
-  </div>
-  {buttons}
-</form>
-{scripts}"""
+    anschrift: Anschrift
 
 
 class Feedback(Form):
+    theme = BOOTSTRAP
+
     def get_schema(self, request):
         return FeedbackForm
 
     def get_form(self, request, values=None, errors=None):
         # explicit, template-driven rendering: place each field yourself
-        bound = self.bind(request, values, errors)
-        return FEEDBACK_TEMPLATE.format(
-            attrs=bound.attrs,
-            form_errors=bound.form_errors(),
-            salutation=bound["salutation"],
-            name=bound["name"],
-            email=bound["email"],
-            nickname=bound["nickname"],
-            buttons=bound.buttons(),
-            scripts=bound.scripts(),
-        )
+        return render_template(
+            "feedback.pt", dirs=(str(EX_TEMPLATES),),
+            form=self.bind(request, values, errors))
 
     def render_response(self, html_form, request):
         return Response(

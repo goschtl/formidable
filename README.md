@@ -4,6 +4,8 @@ Generate HTML forms from [Pydantic](https://docs.pydantic.dev/) models —
 rendering, parsing, validation, themes and i18n, with the model as the
 single source of truth.
 
+**[Read the documentation](https://goschtl.github.io/formidable/)**
+
 ```python
 from pydantic import BaseModel, Field
 from werkzeug.wrappers import Response
@@ -33,7 +35,7 @@ pressed button's action. On validation errors the form re-renders with
 the submitted values and per-field error messages.
 
 See `ex.py` for a runnable demo (`uv run python ex.py`, then
-<http://localhost:8000/> for Bootstrap and `/material` for Material).
+<http://localhost:8000/>).
 
 ## Features
 
@@ -201,29 +203,31 @@ def get_messages(self, request): ...   # per-request (Accept-Language)
 
 ### Own templates: explicit field rendering
 
-Instead of letting the renderer emit the whole `<form>`, bind the
-schema and place each piece yourself — in Jinja2, Chameleon or plain
-f-strings (fields implement `__html__`, so template engines don't
-escape them):
+Instead of letting the renderer emit the whole `<form>`, bind the schema
+and place each piece yourself. Fields are looked up by dot path, so parts
+of nested models and list rows can go anywhere too:
 
 ```python
-bound = self.bind(request, values, errors)   # in a Form view
-
-f"""<form {bound.attrs}>
-  {bound.form_errors()}
-  <div class="left">{bound["name"]}</div>
-  <div class="right">{bound["age"]}</div>
-  {bound.buttons()}
-</form>
-{bound.scripts()}"""
+def get_form(self, request, values=None, errors=None):
+    return render_template("claim.pt", dirs=("templates",),
+                           form=self.bind(request, values, errors))
 ```
 
-`bound.attrs` already knows whether the form needs `enctype` or the
-row script (fields are rendered at bind time), iteration yields the
-fields in schema order, and `bound.error("name")` exposes raw messages
-for fully custom error display. Override `get_form()` to return the
-template output and the validation-error re-render automatically flows
-through the same template — see the `/custom` route in `ex.py`.
+```html
+<form tal:attributes="form.attributes">
+  ${form.form_errors()}
+  <div class="left">${form['name']}</div>
+  <div class="right">${form['address.city']}</div>
+  ${form.buttons()}
+</form>
+${form.scripts()}
+```
+
+`form.attributes` knows whether the form needs `enctype`, iteration yields
+the top-level fields in schema order, and `form.error("name")` exposes raw
+messages. Validation errors flow through the same template. Jinja2 and
+f-strings can use the text form, `<form {form.attrs}>`, which Chameleon
+can't parse. See the `/custom` route in `ex.py`.
 
 ### Custom widgets
 

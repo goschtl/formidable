@@ -65,6 +65,9 @@ from formidable.renderers.form import (
 )
 
 __all__ = [
+    "UPLOAD_STYLE",
+    "UPLOAD_SCRIPTS",
+    "AsyncFileFieldRenderer",
     "BASIC_WIDGETS",
     "CONDITIONS_SCRIPT",
     "CSRF_FIELD",

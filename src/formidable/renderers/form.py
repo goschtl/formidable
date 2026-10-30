@@ -257,19 +257,21 @@ class BoundForm:
     Instead of letting FormRenderer emit the whole <form>, place the
     pieces yourself in any template::
 
-        bound = renderer.bind(Schema, values=v, errors=e, buttons=btns)
+        form = renderer.bind(Schema, values=v, errors=e, buttons=btns)
 
-        <form {{ bound.attrs }}>
-          {{ bound.form_errors() }}
-          <div class="left">{{ bound["name"] }}</div>
-          <div class="right">{{ bound["age"] }}</div>
-          {{ bound.buttons() }}
+        <form tal:attributes="form.attributes">
+          ${form.form_errors()}
+          <div class="left">${form['name']}</div>
+          <div class="right">${form['address.city']}</div>
+          ${form.buttons()}
         </form>
-        {{ bound.scripts() }}
+        ${form.scripts()}
 
-    All fields are rendered eagerly at bind time so `attrs` already
-    knows whether the form needs `enctype="multipart/form-data"` and
-    whether `scripts()` has anything to contribute.
+    Fields are looked up by dot path, so parts of nested models and list
+    rows can go anywhere as well. All fields are rendered eagerly at bind
+    time so `attributes` already knows whether the form needs
+    `enctype="multipart/form-data"` and whether `scripts()` has anything
+    to contribute.
     """
 
     def __init__(self, renderer: FormRenderer, model_cls: type[BaseModel],
@@ -285,23 +287,57 @@ class BoundForm:
         renderer.needs_multipart = False
         renderer.needs_uploads = False
         self._fields: dict[str, BoundField] = {}
+        self._nested: dict[str, BoundField] = {}
         for name, model_field in model_cls.model_fields.items():
             value = field_value(name, model_field, self.values)
-            html = renderer.render_field(
-                name, model_field, value=value, errors=self.errors)
-            self._fields[name] = BoundField(
-                name, field_title(model_field, name), html)
+            self._fields[name] = self._render(name, model_field, value)
         self.needs_multipart = renderer.needs_multipart
         self.needs_script = renderer.needs_script
         self.needs_uploads = renderer.needs_uploads
 
+    def _render(self, name: str, model_field: FieldInfo, value) -> BoundField:
+        html = self.renderer.render_field(
+            name, model_field, value=value, errors=self.errors)
+        ui = self.renderer.ui.get(ui_path(name), NO_UI)
+        title = ui.title or field_title(model_field, name)
+        return BoundField(name, title, html)
+
+    def _resolve(self, path: str) -> tuple[FieldInfo, t.Any]:
+        """The field at a dot path below the top level, and its value."""
+        first, *rest = path.split(".")
+        schema = self.model_cls
+        if first not in schema.model_fields:
+            raise self._unknown(path, schema)
+        model_field = schema.model_fields[first]
+        value = field_value(first, model_field, self.values)
+        for part in rest:
+            hint = resolve(model_field.annotation)[0].hint
+            if isinstance(hint, type) and issubclass(hint, BaseModel):
+                if part not in hint.model_fields:
+                    raise self._unknown(path, hint)
+                model_field = hint.model_fields[part]
+                value = ModelFieldRenderer.subvalue(value, part, model_field)
+            elif t.get_origin(hint) is list and part.isdigit():
+                index = int(part)
+                title = field_title(model_field, first)
+                model_field = FieldInfo.from_annotation(t.get_args(hint)[0])
+                model_field.title = f"{title} #{index + 1}"
+                value = value[index] if value and index < len(value) else None
+            else:
+                raise KeyError(f"{self.model_cls.__name__} has no field "
+                               f"{path!r}: nothing below {part!r}")
+        return model_field, value
+
+    def _unknown(self, path: str, schema: type[BaseModel]) -> KeyError:
+        return KeyError(f"{schema.__name__} has no field {path!r}; "
+                        f"available: {', '.join(schema.model_fields)}")
+
     def __getitem__(self, name: str) -> BoundField:
-        try:
+        if name in self._fields:
             return self._fields[name]
-        except KeyError:
-            raise KeyError(
-                f"{self.model_cls.__name__} has no field {name!r}; "
-                f"available: {', '.join(self._fields)}") from None
+        if name not in self._nested:
+            self._nested[name] = self._render(name, *self._resolve(name))
+        return self._nested[name]
 
     field = __getitem__
 
@@ -309,16 +345,26 @@ class BoundForm:
         return iter(self._fields.values())
 
     @property
-    def attrs(self) -> Markup:
-        """Attributes for a hand-written <form> tag."""
-        parts = ['method="post"']
+    def attributes(self) -> dict[str, str]:
+        """The attributes of a hand-written <form> tag, as Chameleon's
+        `tal:attributes` takes them."""
+        attributes = {"method": "post"}
         if self.needs_multipart:
-            parts.append('enctype="multipart/form-data"')
+            attributes["enctype"] = "multipart/form-data"
         if self.renderer.novalidate:
-            parts.append("novalidate")
+            attributes["novalidate"] = "novalidate"
         if self.renderer.theme.form:
-            parts.append(f'class="{self.renderer.theme.form}"')
-        return Markup(" ".join(parts))
+            attributes["class"] = self.renderer.theme.form
+        return attributes
+
+    @property
+    def attrs(self) -> Markup:
+        """The same as text, for templates that can write into a tag:
+        Jinja2 or f-strings, but not Chameleon."""
+        return Markup(" ").join(
+            Markup(name) if name == value
+            else Markup('{}="{}"').format(name, value)
+            for name, value in self.attributes.items())
 
     def form_errors(self) -> Markup:
         """The model-level error block, or empty."""
