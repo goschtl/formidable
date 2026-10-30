@@ -1,8 +1,9 @@
-import dataclasses
 import datetime
 import enum
 import typing as t
 from pathlib import Path
+from fanstatic import Fanstatic
+from nva.dynamic_form_elements import js as conditional_fields
 from autoroutes import Routes as Autoroutes
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
@@ -187,10 +188,7 @@ LD_000_0V1100_UI = load_ui(EX_FORMS / "LD_000_0V1100" / "ui_schema.json")
 
 
 class Rueckfrage(Form):
-    theme = dataclasses.replace(BOOTSTRAP, scripts=(
-        "https://code.jquery.com/jquery-3.7.1.min.js",
-        "/static/conditionalfield.js",
-    ))
+    theme = BOOTSTRAP
 
     def get_schema(self, request):
         return LD_000_0V1100Model
@@ -199,6 +197,7 @@ class Rueckfrage(Form):
         return FormRenderer(theme=self.get_theme(request), ui=LD_000_0V1100_UI)
 
     def render_response(self, html_form, request):
+        conditional_fields.need()  # adds the script and jQuery to the page
         return Response(
             page(html_form, self.get_theme(request),
                  title=LD_000_0V1100Model.__doc__.splitlines()[0]),
@@ -210,15 +209,9 @@ class Rueckfrage(Form):
         return Response(data.model_dump_json(indent=2), mimetype="text/plain")
 
 
-def conditionalfield_js(request):
-    return Response((EX_FORMS / "conditionalfield.js").read_text(encoding="utf-8"),
-                    mimetype="text/javascript")
-
-
 # URL routing rules
 routes.add("/", endpoint=Index())
 routes.add("/rueckfrage", endpoint=Rueckfrage())
-routes.add("/static/conditionalfield.js", endpoint=conditionalfield_js)
 routes.add("/material", endpoint=MaterialIndex())
 routes.add("/custom", endpoint=Feedback())
 
@@ -244,8 +237,12 @@ def wsgi_app(environ, start_response):
     return response(environ, start_response)
 
 
+# Injects needed resources into pages and serves them
+application = Fanstatic(wsgi_app)
+
+
 if __name__ == "__main__":
     from werkzeug.serving import run_simple
 
     print("Serving on http://localhost:8000")
-    run_simple("0.0.0.0", 8000, wsgi_app, use_debugger=True, use_reloader=True)
+    run_simple("0.0.0.0", 8000, application, use_debugger=True, use_reloader=True)

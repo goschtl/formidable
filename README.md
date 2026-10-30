@@ -285,6 +285,32 @@ to your application. Two consequences if you do use it: a
 the same name, and `partial_search="registered"` is not supported, as it
 hides formidable's own partials.
 
+### UI schemas and conditional fields
+
+A `ui_schema.json` adds presentation to a model without touching it:
+titles, descriptions, placeholders, widgets, option labels and
+conditions, by dot path (`users.items.street` for list rows).
+
+```python
+from formidable.ui import load_ui
+
+FormRenderer(ui=load_ui("ui_schema.json"))
+```
+
+Conditions render as `data-conditions`. Showing and hiding is done by
+`conditionalfield.js` from `nva.dynamic_form_elements` (optional, from
+the private index), the same script the deform forms use. It is a
+fanstatic resource, so call `js.need()` when rendering the page and wrap
+your application in `fanstatic.Fanstatic`. The browser only decides what
+is visible, so conditional requirements still belong in a model
+validator.
+
+See `/rueckfrage` in `ex.py`, which needs the package installed:
+`uv pip install -e ../nva.dynamic_form_elements`. `uv sync` removes it
+again.
+
+`ui:attributes` and `ui:mask` are not supported yet.
+
 ## The hooks at a glance
 
 | Hook | Purpose |
