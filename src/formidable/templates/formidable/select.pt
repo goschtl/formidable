@@ -1,8 +1,9 @@
-<div class="${classes(theme.wrapper)}" data-conditions="${conditions}">
+<div class="${classes(theme.wrapper)}" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
   <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
-  <select class="${css}" id="field-${name}" multiple="${multiple}" name="${name}" required="${required}">
+  <select class="${css}" id="field-${name}" multiple="${multiple}" name="${name}" required="${required}" tal:attributes="control_attrs">
     <option tal:repeat="option options" selected="${option.selected}" value="${option.value}">${option.title}</option>
   </select>
   ${render_partial('formidable/error.pt', error=error, theme=theme)}
   ${render_partial('formidable/description.pt', description=description, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, theme=theme)}
 </div>

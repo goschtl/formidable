@@ -1,6 +1,7 @@
-<div class="${classes(theme.wrapper)}" data-conditions="${conditions}">
+<div class="${classes(theme.wrapper)}" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
   <label class="${classes(theme.label)}" for="field-${name}">${title}</label>
-  <input checked="${checked}" class="${css}" id="field-${name}" name="${name}" type="checkbox" value="${value}">
+  <input checked="${checked}" class="${css}" id="field-${name}" name="${name}" type="checkbox" value="${value}" tal:attributes="control_attrs">
   ${render_partial('formidable/error.pt', error=error, theme=theme)}
   ${render_partial('formidable/description.pt', description=description, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, theme=theme)}
 </div>

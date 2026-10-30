@@ -13,6 +13,7 @@ Everything public is re-exported here; import from
 from formidable.renderers.base import (
     CONDITIONS_SCRIPT,
     CSRF_FIELD,
+    MASK_SCRIPT,
     OPTIONAL,
     TEMPLATES,
     TRUTHY,
@@ -65,6 +66,7 @@ __all__ = [
     "CONDITIONS_SCRIPT",
     "CSRF_FIELD",
     "INDEX_PLACEHOLDER",
+    "MASK_SCRIPT",
     "LIST_SCRIPT",
     "NAMED_WIDGETS",
     "NUM_PLACEHOLDER",

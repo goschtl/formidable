@@ -22,9 +22,9 @@ CSRF_FIELD = "__csrf__"
 
 TEMPLATES = Path(__file__).parent.parent / "templates"
 
-CONDITIONS_SCRIPT = (
-    Path(__file__).parent.parent / "static" / "conditions.js"
-).read_text(encoding="utf-8")
+STATIC = Path(__file__).parent.parent / "static"
+CONDITIONS_SCRIPT = (STATIC / "conditions.js").read_text(encoding="utf-8")
+MASK_SCRIPT = (STATIC / "mask.js").read_text(encoding="utf-8")
 
 
 def classes(*parts: str) -> str | None:
@@ -119,7 +119,14 @@ class IFieldRenderer:
         context = {
             "conditions": self.ui.conditions_json,
             "description": self.description,
-            "placeholder": self.ui.placeholder,
+            "placeholder": self.ui.placeholder or (
+                self.ui.active_mask.hint if self.ui.active_mask else None),
+            "unit": self.ui.unit,
+            "help": self.ui.help,
+            "multiple": self.ui.multiple,
+            "accept": self.ui.accept_value,
+            "wrapper_attrs": self.ui.wrapper_attributes,
+            "control_attrs": self.ui.control_attributes,
             **context,
         }
         if self.renderer is not None:

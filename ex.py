@@ -14,7 +14,7 @@ from formidable import i18n, themes
 from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
 from formidable.themes.material import MATERIAL
-from formidable.ui import load_ui
+from formidable.ui import load_ui, parse_ui
 from ex_forms.LD_000_0V1100.model import LD_000_0V1100Model
 
 
@@ -205,9 +205,48 @@ class Rueckfrage(Form):
         return Response(data.model_dump_json(indent=2), mimetype="text/plain")
 
 
+# --- The remaining UI schema options ---
+
+
+class UIDemoForm(BaseModel):
+    kosten: float = Field(..., title="Kosten")
+    nummer: str = Field(..., title="Nummer", pattern=r"^\d{2}-\d{4}$")
+    belege: list[UploadedFile] = Field(default_factory=list, title="Belege")
+
+
+UI_DEMO = parse_ui({
+    "kosten": {"ui:unit": "EUR", "ui:help": "Bitte Belege beifügen."},
+    "nummer": {"ui:widget": "text",
+               "ui:mask": {"mask": "99-9999", "mask_placeholder": "#"}},
+    "belege": {"ui:widget": "file", "ui:multiple": True,
+               "ui:accept": ["application/pdf", "image/png"]},
+})
+
+
+class UIDemo(Form):
+    theme = BOOTSTRAP
+
+    def get_schema(self, request):
+        return UIDemoForm
+
+    def get_renderer(self, request):
+        return FormRenderer(theme=self.get_theme(request), ui=UI_DEMO)
+
+    def render_response(self, html_form, request):
+        return Response(page(html_form, self.get_theme(request), title="UI demo"),
+                        mimetype="text/html")
+
+    @trigger(name="send", title="Absenden", validate=True)
+    def send(self, request, data):
+        files = [upload.filename for upload in data.belege]
+        return Response(f"{data.kosten} EUR, {data.nummer}, {files}",
+                        mimetype="text/plain")
+
+
 # URL routing rules
 routes.add("/", endpoint=Index())
 routes.add("/rueckfrage", endpoint=Rueckfrage())
+routes.add("/ui-demo", endpoint=UIDemo())
 routes.add("/material", endpoint=MaterialIndex())
 routes.add("/custom", endpoint=Feedback())
 

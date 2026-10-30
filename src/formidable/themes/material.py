@@ -28,6 +28,7 @@ MATERIAL = Theme(
     # Materialize selects normally need JS init; browser-default skips it
     select="browser-default",
     checkbox="filled-in",
+    unit="helper-text",
     invalid="invalid",
     error="helper-text red-text",
     hint="helper-text",

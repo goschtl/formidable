@@ -1,9 +1,10 @@
-<fieldset class="${classes('field-radiogroup', theme.fieldset)}" data-conditions="${conditions}">
+<fieldset class="${classes('field-radiogroup', theme.fieldset)}" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
   <legend class="${classes(theme.legend)}">${title}</legend>
   <div tal:repeat="option options" class="field-radio-option">
-    <input checked="${option.selected}" class="${css}" id="field-${name}-${repeat.option.index}" name="${name}" required="${required}" type="radio" value="${option.value}">
+    <input checked="${option.selected}" class="${css}" id="field-${name}-${repeat.option.index}" name="${name}" required="${required}" type="radio" value="${option.value}" tal:attributes="control_attrs">
     <label for="field-${name}-${repeat.option.index}">${option.title}</label>
   </div>
   ${render_partial('formidable/error.pt', error=error, theme=theme)}
   ${render_partial('formidable/description.pt', description=description, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, theme=theme)}
 </fieldset>

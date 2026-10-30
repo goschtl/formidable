@@ -1,6 +1,7 @@
-<fieldset class="${classes('field-model', theme.fieldset)}" data-conditions="${conditions}">
+<fieldset class="${classes('field-model', theme.fieldset)}" data-conditions="${conditions}" tal:attributes="wrapper_attrs">
   <legend class="${classes(theme.legend)}">${title}</legend>
   <tal:field repeat="field fields">${field}</tal:field>
   ${render_partial('formidable/error.pt', error=error, theme=theme)}
   ${render_partial('formidable/description.pt', description=description, theme=theme)}
+  ${render_partial('formidable/help.pt', help=help, theme=theme)}
 </fieldset>

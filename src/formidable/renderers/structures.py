@@ -63,6 +63,7 @@ class ModelFieldRenderer(IFieldRenderer):
             title=field_title(field_info, name),
             fields=fields,
             error=(errors or {}).get(name),
+            wrapper_attrs=self.ui.attributes_without_conditions,
         )
 
     @staticmethod
@@ -106,4 +107,5 @@ class ListFieldRenderer(IFieldRenderer):
             rows=rows,
             blank_row=item_row(INDEX_PLACEHOLDER, NUM_PLACEHOLDER, None),
             error=(errors or {}).get(name),
+            wrapper_attrs=self.ui.attributes_without_conditions,
         )

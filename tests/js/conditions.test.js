@@ -113,6 +113,15 @@ describe("logic and formats", () => {
     expect(shown()).toBe(false);
   });
 
+  test("a single-quoted single condition in a row", () => {
+    document.body.innerHTML = `<div class="field-list-item">
+        <input name="rows.0.mittel" value="ÖPNV">
+        <div id="box" data-conditions="{'field': 'rows.items.mittel', 'operator': 'equals', 'value': 'ÖPNV'}"></div>
+      </div>`;
+    evaluate();
+    expect(shown()).toBe(true);
+  });
+
   test("invalid data leaves the field alone", () => {
     const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
     document.body.innerHTML = '<div id="box" data-conditions="{nope"></div>';

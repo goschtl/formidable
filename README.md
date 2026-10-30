@@ -288,8 +288,8 @@ hides formidable's own partials.
 ### UI schemas and conditional fields
 
 A `ui_schema.json` adds presentation to a model without touching it:
-titles, descriptions, placeholders, widgets, option labels and
-conditions, by dot path (`users.items.street` for list rows).
+titles, descriptions, help texts, placeholders, units, masks, widgets,
+option labels, attributes and conditions, by dot path (`users.items.street` for list rows).
 
 ```python
 from formidable.ui import load_ui
@@ -308,7 +308,19 @@ supported: `equals`, `not_equals`, `contains`, `not_contains`,
 The browser only decides what is visible, so conditional requirements
 still belong in a model validator. See `/rueckfrage` in `ex.py`.
 
-`ui:attributes` and `ui:mask` are not supported yet.
+`ui:attributes` go on the input, select or textarea, and on the fieldset
+of nested models and lists. `data-conditions`, `data-condition-logic`,
+`data-conditional-options` and `data-not-required` go on the element
+around the field, where the script reads them. An attribute replaces a
+value the template already sets, so `class` replaces the theme's classes.
+
+`ui:unit` shows a unit next to the input, `ui:help` a help text below it.
+File inputs take `ui:multiple` (use `list[UploadedFile]` in the model) and
+`ui:accept`, which only filters the browser's file dialog: check the
+content type on the server if it matters. `ui:mask`
+(`{"mask": "99-9999", "mask_placeholder": "#"}`, with `9` a digit, `a` a
+letter, `*` either) formats input while typing, and only applies together
+with a `ui:widget`, as in deform. Validate the value in the model as well.
 
 ## The hooks at a glance
 

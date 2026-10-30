@@ -28,6 +28,8 @@ class Theme:
     input: str = ""         # text/number/file inputs
     select: str = ""
     checkbox: str = ""
+    input_group: str = ""   # the element around an input with a unit
+    unit: str = ""          # the unit next to an input
     invalid: str = ""       # added to an input that has an error
     error: str = ""         # added to the error <span>
     hint: str = ""          # added to hint <span>s (e.g. lost upload)

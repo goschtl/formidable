@@ -14,7 +14,7 @@ from werkzeug.datastructures import FileStorage
 from formidable.themes import Theme, current
 from formidable.ui import NO_UI, UIField, ui_path
 from formidable.renderers.base import (
-    CONDITIONS_SCRIPT, CSRF_FIELD, IFieldRenderer, field_title, field_value,
+    CONDITIONS_SCRIPT, CSRF_FIELD, MASK_SCRIPT, IFieldRenderer, field_title, field_value,
     is_choice, render_template, resolve, widget_hint)
 from formidable.renderers.inputs import (
     BoolFieldRenderer, DateFieldRenderer, DateTimeFieldRenderer,
@@ -134,8 +134,10 @@ class FormRenderer:
         scripts = []
         if self.needs_script:
             scripts.append(LIST_SCRIPT)
-        if any(ui.conditions for ui in self.ui.values()):
+        if any(ui.needs_conditions_script for ui in self.ui.values()):
             scripts.append(CONDITIONS_SCRIPT)
+        if any(ui.active_mask for ui in self.ui.values()):
+            scripts.append(MASK_SCRIPT)
         if not scripts:
             return None
         return Markup("\n").join(

@@ -146,11 +146,12 @@ class Form:
                 continue
             # repeated keys (multi-selects, checkbox groups) stay lists
             flat[key] = submitted[0] if len(submitted) == 1 else submitted
-        for key, storage in request.files.items():
+        for key, storages in request.files.lists():
             # an empty file input submits a part with no filename: treat
             # it as absent so defaults apply
-            if storage.filename:
-                flat[key] = storage
+            chosen = [storage for storage in storages if storage.filename]
+            if chosen:
+                flat[key] = chosen[0] if len(chosen) == 1 else chosen
         data = unflatten(flat)
         return normalize(self.get_schema(request), data)
 
