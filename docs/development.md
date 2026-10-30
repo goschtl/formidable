@@ -11,10 +11,11 @@ Built on Pydantic v2, chameleon-rs, beartype and werkzeug.
 
 ## This documentation
 
-The pages are in `docs/`. To preview them:
+The pages are in `docs/`, built with [Zensical](https://zensical.org), which
+reads `mkdocs.yml`. To preview them:
 
 ```bash
-uvx --from "mkdocs<2" --with mkdocs-material mkdocs serve
+uvx zensical@0.0.73 serve
 ```
 
 A push that changes them publishes the site to GitHub Pages, through the

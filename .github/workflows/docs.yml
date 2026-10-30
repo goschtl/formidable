@@ -27,4 +27,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          uvx --from "mkdocs<2" --with mkdocs-material mkdocs gh-deploy --force --strict
+          uvx zensical@0.0.73 build --strict
+          uvx ghp-import --no-jekyll --push --force site
