@@ -88,19 +88,6 @@ wheels = [
 ]
 
 [[package]]
-name = "fanstatic"
-version = "1.8"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "packaging" },
-    { name = "webob" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/69/e9/4348d62811a39ed52ab6e6b27e8eb9188309ad6e5def90d93f3cef06ad29/fanstatic-1.8.tar.gz", hash = "sha256:697a7697fbd358318b0468e43e2cc0ca5ea6569c5f45607075fde7ed36a7f9d6", size = 84375, upload-time = "2026-09-18T06:57:59.743Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/bb/c508d7d6c4530c568d6d95b4b411c794fd4b329468e67a3903485bd44071/fanstatic-1.8-py3-none-any.whl", hash = "sha256:17a5ca0b8bda50e4017b128d9eb294e1c87ca999e8a159f6bd956c9a4d960d19", size = 61365, upload-time = "2026-09-18T06:57:58.318Z" },
-]
-
-[[package]]
 name = "formidable"
 version = "0.1.0"
 source = { editable = "." }
@@ -115,8 +102,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "fanstatic" },
-    { name = "js-jquery" },
     { name = "pdbpp" },
     { name = "pytest" },
 ]
@@ -133,8 +118,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "fanstatic", specifier = ">=1.8" },
-    { name = "js-jquery", specifier = ">=3.6.1" },
     { name = "pdbpp", specifier = ">=0.10.3" },
     { name = "pytest", specifier = ">=8.0" },
 ]
@@ -146,28 +129,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/72/34/14ca021ce8e5dfedc35312d08ba8bf51fdd999c576889fc2c24cb97f4f10/iniconfig-2.3.0.tar.gz", hash = "sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730", size = 20503, upload-time = "2025-10-18T21:55:43.219Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12", size = 7484, upload-time = "2025-10-18T21:55:41.639Z" },
-]
-
-[[package]]
-name = "js-jquery"
-version = "3.6.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "fanstatic" },
-    { name = "setuptools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cc/26/04ef94b74b936a54556ecf9a321148d09355c362b3aa2c1c063f95f770d6/js.jquery-3.6.1.tar.gz", hash = "sha256:b327270d7633342a49160567c153a578472ea61e25cd686a9658279d795aa1a9", size = 314355, upload-time = "2022-08-31T13:18:50.706Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d4/45/5d7dbe9ac9d29d1dc84ab5e03250874e354dba89e7e960a5d8c69be8bb0a/js.jquery-3.6.1-py2.py3-none-any.whl", hash = "sha256:0b73123cbb29116571d5bbb29aa1a69d2f6c351c4140fe745fa3099c938c7bf0", size = 316138, upload-time = "2022-08-31T13:18:48.305Z" },
-]
-
-[[package]]
-name = "legacy-cgi"
-version = "2.6.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f4/9c/91c7d2c5ebbdf0a1a510bfa0ddeaa2fbb5b78677df5ac0a0aa51cf7125b0/legacy_cgi-2.6.4.tar.gz", hash = "sha256:abb9dfc7835772f7c9317977c63253fd22a7484b5c9bbcdca60a29dcce97c577", size = 24603, upload-time = "2025-10-27T05:20:05.395Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/7e/e7394eeb49a41cc514b3eb49020223666cbf40d86f5721c2f07871e6d84a/legacy_cgi-2.6.4-py3-none-any.whl", hash = "sha256:7e235ce58bf1e25d1fc9b2d299015e4e2cd37305eccafec1e6bac3fc04b878cd", size = 20035, upload-time = "2025-10-27T05:20:04.289Z" },
 ]
 
 [[package]]
@@ -360,15 +321,6 @@ wheels = [
 ]
 
 [[package]]
-name = "setuptools"
-version = "84.2.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/70/b3/c19426f783614d625699a4b247faf628ea9ab1db228674491767b417f9e1/setuptools-84.2.1.tar.gz", hash = "sha256:3ff8b3b5492a0aa66960f4419365a86b84e013070d4313e4d4a6894f5d64d6bc", size = 1230289, upload-time = "2026-10-20T19:01:37.742Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/55/6dc6d6bb953bdfc52519a0059592c52b6e3b8ad51cf8256dffceb55b0610/setuptools-84.2.1-py3-none-any.whl", hash = "sha256:ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2", size = 876263, upload-time = "2026-10-20T19:01:35.678Z" },
-]
-
-[[package]]
 name = "typing-extensions"
 version = "4.13.0"
 source = { registry = "https://pypi.org/simple" }
@@ -387,18 +339,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/82/5c/e6082df02e215b846b4b8c0b887a64d7d08ffaba30605502639d44c06b82/typing_inspection-0.4.0.tar.gz", hash = "sha256:9765c87de36671694a67904bf2c96e395be9c6439bb6c87b5142569dcdd65122", size = 76222, upload-time = "2025-02-25T17:27:59.638Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/31/08/aa4fdfb71f7de5176385bd9e90852eaf6b5d622735020ad600f2bab54385/typing_inspection-0.4.0-py3-none-any.whl", hash = "sha256:50e72559fcd2a6367a19f7a7e610e6afcb9fac940c650290eed893d61386832f", size = 14125, upload-time = "2025-02-25T17:27:57.754Z" },
-]
-
-[[package]]
-name = "webob"
-version = "1.8.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "legacy-cgi", marker = "python_full_version >= '3.13'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e6/92/9329872e36be90e25ba616ac6e9ee8c1be4326a1ea3fdffcdabd0eb48efb/webob-1.8.11.tar.gz", hash = "sha256:aa8c27231070b135c025e567a9cd7eda03f4df71352ffaac740cb6a75f0f81a5", size = 286047, upload-time = "2026-08-02T06:26:26.063Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/71/370a65bc7726a1cbf478445c898c7affe907aa42e2e9e5bb38319db74115/webob-1.8.11-py2.py3-none-any.whl", hash = "sha256:4addd1d38d6a7fbe0eda22d45f25a40d74c8b290f3a99c0ac3d4023cf21f2da2", size = 118319, upload-time = "2026-08-02T06:26:24.765Z" },
 ]
 
 [[package]]

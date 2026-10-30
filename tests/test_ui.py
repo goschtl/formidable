@@ -36,6 +36,7 @@ def test_ui_path_maps_rows_to_items():
 def test_without_ui_nothing_changes():
     html = FormRenderer()(Schema)
     assert "data-conditions" not in html
+    assert "FormidableConditions" not in html
     assert "placeholder" not in html
 
 
@@ -72,7 +73,8 @@ def test_conditions_render_as_json_on_the_wrapper():
                             "ui:condition_logic": "and"}})
     expected = json.dumps({"conditions": [CONDITION], "logic": "and"})
     assert expected.replace('"', "&quot;") in html
-    assert html.count("data-conditions") == 1
+    assert html.count('data-conditions="') == 1
+    assert "FormidableConditions" in html
 
 
 def test_row_fields_use_the_items_path():
@@ -83,7 +85,31 @@ def test_row_fields_use_the_items_path():
     )
     # the existing row and the blank <template> row
     assert html.count(">Strasse</label>") == 2
-    assert html.count("data-conditions") == 2
+    assert html.count('data-conditions="') == 2
+
+
+def test_scripts_are_only_included_when_needed():
+    html = render({"body": {"ui:conditions": [CONDITION]}})
+    assert html.count("<script>") == 2  # rows and conditions
+    assert html.count("FormidableConditions") >= 1
+
+    class Flat(BaseModel):
+        name: str
+
+    html = FormRenderer(ui=parse_ui({"name": {"ui:conditions": [CONDITION]}}))(Flat)
+    assert html.count("<script>") == 1
+    assert "__formidable_rows" not in html
+
+
+def test_bound_forms_include_the_conditions_script():
+    class Flat(BaseModel):
+        name: str
+
+    renderer = FormRenderer(ui=parse_ui({"name": {"ui:conditions": [CONDITION]}}))
+    bound = renderer.bind(Flat)
+    assert "FormidableConditions" in bound.scripts()
+    assert 'data-conditions="' in str(bound["name"])
+    assert FormRenderer().bind(Flat).scripts() == ""
 
 
 def test_entries_without_a_field_are_ignored():

@@ -11,6 +11,7 @@ Everything public is re-exported here; import from
 """
 
 from formidable.renderers.base import (
+    CONDITIONS_SCRIPT,
     CSRF_FIELD,
     OPTIONAL,
     TEMPLATES,
@@ -61,6 +62,7 @@ from formidable.renderers.form import (
 
 __all__ = [
     "BASIC_WIDGETS",
+    "CONDITIONS_SCRIPT",
     "CSRF_FIELD",
     "INDEX_PLACEHOLDER",
     "LIST_SCRIPT",

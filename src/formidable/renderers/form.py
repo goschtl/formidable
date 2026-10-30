@@ -14,7 +14,7 @@ from werkzeug.datastructures import FileStorage
 from formidable.themes import Theme, current
 from formidable.ui import NO_UI, UIField, ui_path
 from formidable.renderers.base import (
-    CSRF_FIELD, IFieldRenderer, field_title, field_value,
+    CONDITIONS_SCRIPT, CSRF_FIELD, IFieldRenderer, field_title, field_value,
     is_choice, render_template, resolve, widget_hint)
 from formidable.renderers.inputs import (
     BoolFieldRenderer, DateFieldRenderer, DateTimeFieldRenderer,
@@ -129,8 +129,18 @@ class FormRenderer:
                 "formidable/form_errors.pt", error=form_error)
         return None
 
-    def render_script(self) -> Markup:
-        return self.render_template("formidable/script.pt", code=LIST_SCRIPT)
+    def render_scripts(self) -> Markup | None:
+        """The scripts this form needs, or None."""
+        scripts = []
+        if self.needs_script:
+            scripts.append(LIST_SCRIPT)
+        if any(ui.conditions for ui in self.ui.values()):
+            scripts.append(CONDITIONS_SCRIPT)
+        if not scripts:
+            return None
+        return Markup("\n").join(
+            self.render_template("formidable/script.pt", code=code)
+            for code in scripts)
 
     def bind(self,
              model_cls: type[BaseModel],
@@ -193,7 +203,7 @@ class FormRenderer:
             form_errors=self.render_form_errors(errors),
             fields=fields,
             buttons=[self.render_button(btn) for btn in buttons],
-            script=self.render_script() if self.needs_script else None,
+            script=self.render_scripts(),
         )
 
 
@@ -304,7 +314,6 @@ class BoundForm:
         return Markup("\n").join(parts)
 
     def scripts(self) -> Markup:
-        """The row add/remove script, when a list field was rendered."""
-        if self.needs_script:
-            return self.renderer.render_script()
-        return Markup("")
+        """The row and conditions scripts, when the form needs them."""
+        self.renderer.needs_script = self.needs_script
+        return self.renderer.render_scripts() or Markup("")

@@ -22,6 +22,10 @@ CSRF_FIELD = "__csrf__"
 
 TEMPLATES = Path(__file__).parent.parent / "templates"
 
+CONDITIONS_SCRIPT = (
+    Path(__file__).parent.parent / "static" / "conditions.js"
+).read_text(encoding="utf-8")
+
 
 def classes(*parts: str) -> str | None:
     """Merge functional and theme class names, skipping empty ones.

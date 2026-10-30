@@ -29,10 +29,14 @@ LIST_SCRIPT = """
         .replaceAll("__index__", next)
         .replaceAll("__num__", next + 1);
       items.insertAdjacentHTML("beforeend", html);
+      document.dispatchEvent(new CustomEvent("formidable:rows"));
       return;
     }
     var rm = ev.target.closest(".formidable-remove-row");
-    if (rm) rm.closest(".field-list-item").remove();
+    if (rm) {
+      rm.closest(".field-list-item").remove();
+      document.dispatchEvent(new CustomEvent("formidable:rows"));
+    }
     // no reindexing needed: the server accepts sparse indices
   });
 })();

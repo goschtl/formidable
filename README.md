@@ -297,15 +297,16 @@ from formidable.ui import load_ui
 FormRenderer(ui=load_ui("ui_schema.json"))
 ```
 
-Conditions render as `data-conditions`. Showing and hiding is done by
-`conditionalfield.js` from `nva.dynamic_form_elements`, the same script
-the deform forms use. It is a fanstatic resource, so call `js.need()`
-when rendering the page and wrap your application in
-`fanstatic.Fanstatic`. The browser only decides what is visible, so
-conditional requirements still belong in a model validator.
+Conditions render as `data-conditions`, and the form includes a small,
+dependency-free script that shows and hides those fields. It clears and
+disables what is hidden, so browsers don't submit it. All operators are
+supported: `equals`, `not_equals`, `contains`, `not_contains`,
+`starts_with`, `ends_with`, `greater_than`, `less_than`, `greater_equal`,
+`less_equal`, `empty`, `not_empty`, `in`, `not_in`, as well as
+`data-conditional-options` and `data-not-required` in own templates.
 
-See `/rueckfrage` in `ex.py`, which ships its own copy of the script so
-that `uv sync && uv run python ex.py` works without the private index.
+The browser only decides what is visible, so conditional requirements
+still belong in a model validator. See `/rueckfrage` in `ex.py`.
 
 `ui:attributes` and `ui:mask` are not supported yet.
 
@@ -328,6 +329,7 @@ that `uv sync && uv run python ex.py` works without the private index.
 uv sync
 uv run pytest
 uvx ruff check src/ tests/ ex.py
+cd tests/js && npm install && npm test     # the browser scripts
 ```
 
 CI runs both on Python 3.12 and 3.13 (GitHub Actions).

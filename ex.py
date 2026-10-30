@@ -2,8 +2,6 @@ import datetime
 import enum
 import typing as t
 from pathlib import Path
-from fanstatic import Fanstatic, Library, Resource, get_library_registry
-from js.jquery import jquery
 from autoroutes import Routes as Autoroutes
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
@@ -186,12 +184,6 @@ EX_FORMS = Path(__file__).parent / "ex_forms"
 LD_000_0V1100_UI = load_ui(EX_FORMS / "LD_000_0V1100" / "ui_schema.json")
 
 
-# A copy of nva.dynamic_form_elements' script, so the example runs on its own
-library = Library("formidable_example", "ex_forms/static")
-get_library_registry().add(library)
-conditional_fields = Resource(library, "conditionalfield.js", depends=[jquery])
-
-
 class Rueckfrage(Form):
     theme = BOOTSTRAP
 
@@ -202,7 +194,6 @@ class Rueckfrage(Form):
         return FormRenderer(theme=self.get_theme(request), ui=LD_000_0V1100_UI)
 
     def render_response(self, html_form, request):
-        conditional_fields.need()  # adds the script and jQuery to the page
         return Response(
             page(html_form, self.get_theme(request),
                  title=LD_000_0V1100Model.__doc__.splitlines()[0]),
@@ -242,12 +233,8 @@ def wsgi_app(environ, start_response):
     return response(environ, start_response)
 
 
-# Injects needed resources into pages and serves them
-application = Fanstatic(wsgi_app)
-
-
 if __name__ == "__main__":
     from werkzeug.serving import run_simple
 
     print("Serving on http://localhost:8000")
-    run_simple("0.0.0.0", 8000, application, use_debugger=True, use_reloader=True)
+    run_simple("0.0.0.0", 8000, wsgi_app, use_debugger=True, use_reloader=True)
