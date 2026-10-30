@@ -17,6 +17,8 @@ from formidable.renderers.base import (
     OPTIONAL,
     TEMPLATES,
     TRUTHY,
+    UPLOAD_SCRIPTS,
+    UPLOAD_STYLE,
     IFieldRenderer,
     classes,
     default_value,
@@ -28,6 +30,7 @@ from formidable.renderers.base import (
     widget_hint,
 )
 from formidable.renderers.inputs import (
+    AsyncFileFieldRenderer,
     BoolFieldRenderer,
     DateFieldRenderer,
     DateTimeFieldRenderer,

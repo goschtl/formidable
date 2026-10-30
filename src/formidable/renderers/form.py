@@ -14,10 +14,11 @@ from werkzeug.datastructures import FileStorage
 from formidable.themes import Theme, current
 from formidable.ui import NO_UI, UIField, ui_path
 from formidable.renderers.base import (
-    CONDITIONS_SCRIPT, CSRF_FIELD, MASK_SCRIPT, IFieldRenderer, field_title, field_value,
+    CONDITIONS_SCRIPT, CSRF_FIELD, MASK_SCRIPT, UPLOAD_SCRIPTS, UPLOAD_STYLE,
+    IFieldRenderer, field_title, field_value,
     is_choice, render_template, resolve, widget_hint)
 from formidable.renderers.inputs import (
-    BoolFieldRenderer, DateFieldRenderer, DateTimeFieldRenderer,
+    AsyncFileFieldRenderer, BoolFieldRenderer, DateFieldRenderer, DateTimeFieldRenderer,
     EmailFieldRenderer, FileFieldRenderer, FloatFieldRenderer,
     IntFieldRenderer, PasswordFieldRenderer, StringFieldRenderer,
     TextareaFieldRenderer, TimeFieldRenderer)
@@ -67,7 +68,9 @@ class FormRenderer:
                  theme: Theme | None = None,
                  novalidate: bool = True,
                  templates: t.Iterable[str | PathLike] = (),
-                 ui: t.Mapping[str, UIField] | None = None):
+                 ui: t.Mapping[str, UIField] | None = None,
+                 upload_url: str | None = None,
+                 upload_options: t.Mapping[str, t.Any] | None = None):
         if theme is None:
             theme = current()  # the theme registered site-wide
         # explicit `widgets` beat the theme's, which beat the defaults
@@ -77,12 +80,16 @@ class FormRenderer:
         # own templates beat the theme's, which beat the built-ins
         self.template_dirs = (*map(str, templates), *theme.templates)
         self.ui = ui or {}
+        # where file widgets holding references upload to, see dispatch()
+        self.upload_url = upload_url
+        self.upload_options = upload_options
         # Server-side validation is the source of truth: `novalidate`
         # stops the browser from blocking submits, while the `required`
         # attributes stay in the markup for accessibility and styling.
         self.novalidate = novalidate
         self.needs_script = False
         self.needs_multipart = False
+        self.needs_uploads = False
 
     def dispatch(self, name: str, token: TypeHint,
                  model_field: FieldInfo | None = None,
@@ -97,6 +104,8 @@ class FormRenderer:
         # a checkbox with options is a group: left to the type dispatch
         if hint_name and not (hint_name == "checkbox" and ui.options):
             if named := NAMED_WIDGETS.get(hint_name):
+                if named is FileFieldRenderer and self.uploads_apart(token):
+                    return AsyncFileFieldRenderer
                 return named
         if widget := self.widgets.get(token):
             return widget
@@ -111,6 +120,14 @@ class FormRenderer:
         if isinstance(hint, type) and issubclass(hint, BaseModel):
             return ModelFieldRenderer
         return None
+
+    def uploads_apart(self, token: TypeHint) -> bool:
+        """Whether a file field gets uploaded on its own. The model decides:
+        `list[UploadedFile]` wants the files, `list[str]` only references."""
+        hint = token.hint
+        if t.get_origin(hint) is list and (args := t.get_args(hint)):
+            hint = resolve(args[0])[0].hint
+        return bool(self.upload_url) and hint not in (FileStorage, bytes)
 
     def render_template(self, template: str, /, **context) -> Markup:
         return render_template(template, dirs=self.template_dirs,
@@ -138,11 +155,16 @@ class FormRenderer:
             scripts.append(CONDITIONS_SCRIPT)
         if any(ui.active_mask for ui in self.ui.values()):
             scripts.append(MASK_SCRIPT)
+        if self.needs_uploads:
+            scripts.extend(UPLOAD_SCRIPTS)
         if not scripts:
             return None
-        return Markup("\n").join(
-            self.render_template("formidable/script.pt", code=code)
-            for code in scripts)
+        parts = [self.render_template("formidable/script.pt", code=code)
+                 for code in scripts]
+        if self.needs_uploads:
+            parts.insert(0, self.render_template(
+                "formidable/style.pt", code=UPLOAD_STYLE))
+        return Markup("\n").join(parts)
 
     def bind(self,
              model_cls: type[BaseModel],
@@ -190,6 +212,7 @@ class FormRenderer:
         errors = errors or {}
         self.needs_script = False
         self.needs_multipart = False
+        self.needs_uploads = False
         # fields first: they decide on the enctype and the row script
         fields = [
             self.render_field(
@@ -260,6 +283,7 @@ class BoundForm:
         self.csrf_token = csrf_token
         renderer.needs_script = False
         renderer.needs_multipart = False
+        renderer.needs_uploads = False
         self._fields: dict[str, BoundField] = {}
         for name, model_field in model_cls.model_fields.items():
             value = field_value(name, model_field, self.values)
@@ -269,6 +293,7 @@ class BoundForm:
                 name, field_title(model_field, name), html)
         self.needs_multipart = renderer.needs_multipart
         self.needs_script = renderer.needs_script
+        self.needs_uploads = renderer.needs_uploads
 
     def __getitem__(self, name: str) -> BoundField:
         try:
@@ -318,4 +343,5 @@ class BoundForm:
     def scripts(self) -> Markup:
         """The row and conditions scripts, when the form needs them."""
         self.renderer.needs_script = self.needs_script
+        self.renderer.needs_uploads = self.needs_uploads
         return self.renderer.render_scripts() or Markup("")

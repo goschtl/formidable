@@ -1,5 +1,6 @@
 """Scalar widgets: text, number, temporal, password, textarea, file."""
 
+import json
 import typing as t
 from formidable.renderers.base import (
     IFieldRenderer, TRUTHY, classes, field_title)
@@ -130,4 +131,29 @@ class FileFieldRenderer(InputFieldRenderer):
             error=error,
             hint=hint,
             **self.attributes(name, None, invalid=bool(error)),
+        )
+
+
+class AsyncFileFieldRenderer(InputFieldRenderer):
+    """Uploads each file on its own through FilePond. The field's value
+    is what the upload URL answered: one id, or a list of them."""
+
+    template = "formidable/file_async.pt"
+    input_type = "file"
+
+    def render(self, name, field_info, field_type, value=None, errors=None):
+        error = (errors or {}).get(name)
+        self.renderer.needs_uploads = True
+        if not isinstance(value, list):
+            value = [value] if value else []
+        options = self.renderer.upload_options
+        return self.render_template(
+            self.template,
+            name=name,
+            title=field_title(field_info, name),
+            error=error,
+            required=not self.optional,
+            upload_url=self.renderer.upload_url,
+            upload_files=json.dumps(value) if value else None,
+            upload_options=json.dumps(options) if options else None,
         )

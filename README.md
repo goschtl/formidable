@@ -315,12 +315,52 @@ around the field, where the script reads them. An attribute replaces a
 value the template already sets, so `class` replaces the theme's classes.
 
 `ui:unit` shows a unit next to the input, `ui:help` a help text below it.
-File inputs take `ui:multiple` (use `list[UploadedFile]` in the model) and
+File inputs take `ui:multiple` (use `list[UploadedFile]` in the model, or
+`list[str]` with an upload URL, see below) and
 `ui:accept`, which only filters the browser's file dialog: check the
 content type on the server if it matters. `ui:mask`
 (`{"mask": "99-9999", "mask_placeholder": "#"}`, with `9` a digit, `a` a
 letter, `*` either) formats input while typing, and only applies together
 with a `ui:widget`, as in deform. Validate the value in the model as well.
+
+### Uploading files on their own
+
+Normally files travel with the form, and are lost when validation fails.
+With an upload URL, a file field whose model holds references (`str`,
+`list[str]`) sends each file there as soon as it is chosen, with progress,
+drag and drop and removal of single files, through the bundled
+[FilePond](https://pqina.nl/filepond/). The form then submits only the ids,
+and earlier uploads come back after a validation error. Fields declared as
+`UploadedFile` or `FileUpload` stay in the form.
+
+```python
+class Claim(BaseModel):
+    belege: list[str] = Field(..., title="Belege")
+
+FormRenderer(
+    ui=parse_ui({"belege": {"ui:widget": "file", "ui:multiple": True}}),
+    upload_url="/upload",
+    upload_options=i18n.UPLOAD_GERMAN,  # any further FilePond options
+)
+```
+
+Storing the files is up to the application. The URL has to handle:
+
+| Request | Purpose | Response |
+|---|---|---|
+| `POST` | store the file, a multipart part named like the field | the id, as plain text |
+| `DELETE` | remove a file, the id is the request body | empty |
+| `GET ?id=` | give a file back | the file, its name in `Content-Disposition` |
+
+The form's CSRF token arrives in an `X-CSRF-Token` header. The ids are
+user input like any other: generate them on the server and check on submit
+that they belong to the user, or anyone could claim someone else's file.
+Check size and type on the server too, and remove files no form was
+submitted for. `Uploads` in `ex.py` is a small example, at `/upload-demo`.
+
+`data-max-file-size` in `ui:attributes` limits the size in the browser, as
+`ui:accept` does the type (mime types only, not extensions). A form using
+this needs JavaScript, and carries FilePond inline, about 140 KB.
 
 ## The hooks at a glance
 

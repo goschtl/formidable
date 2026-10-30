@@ -25,6 +25,14 @@ TEMPLATES = Path(__file__).parent.parent / "templates"
 STATIC = Path(__file__).parent.parent / "static"
 CONDITIONS_SCRIPT = (STATIC / "conditions.js").read_text(encoding="utf-8")
 MASK_SCRIPT = (STATIC / "mask.js").read_text(encoding="utf-8")
+UPLOAD_SCRIPTS = tuple(
+    (STATIC / path).read_text(encoding="utf-8") for path in (
+        "filepond/filepond.min.js",
+        "filepond/filepond-plugin-file-validate-type.min.js",
+        "filepond/filepond-plugin-file-validate-size.min.js",
+        "upload.js",
+    ))
+UPLOAD_STYLE = (STATIC / "filepond/filepond.min.css").read_text(encoding="utf-8")
 
 
 def classes(*parts: str) -> str | None:

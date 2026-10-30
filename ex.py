@@ -1,9 +1,13 @@
 import datetime
 import enum
+import hmac
+import secrets
+import tempfile
 import typing as t
 from pathlib import Path
 from autoroutes import Routes as Autoroutes
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import BadRequest, HTTPException
+from werkzeug.http import dump_options_header
 from werkzeug.wrappers import Request, Response
 from pydantic import BaseModel, Field, create_model, model_validator
 from pydantic_core import PydanticCustomError
@@ -243,10 +247,128 @@ class UIDemo(Form):
                         mimetype="text/plain")
 
 
+# --- Files uploaded on their own, with FilePond ---
+
+
+class Uploads:
+    """The upload URL: POST stores a file and answers with its id, DELETE
+    removes it, GET gives it back after a validation error.
+
+    The upload belongs to whoever holds the CSRF cookie, so nobody can
+    submit or fetch someone else's id. A real application also keeps the
+    files somewhere lasting and removes those no form was submitted for.
+    """
+
+    allowed = frozenset(("application/pdf", "image/png"))
+
+    def __init__(self):
+        self.folder = Path(tempfile.mkdtemp(prefix="formidable-uploads-"))
+        self.files = {}
+
+    def __call__(self, request):
+        owner = request.cookies.get(Form.csrf_cookie)
+        if not owner:
+            return Response("No session.", status=403)
+        if request.method == "GET":
+            return self.restore(owner, request.args.get("id", ""))
+        token = request.headers.get("X-CSRF-Token", "")
+        if not hmac.compare_digest(owner, token):
+            return Response("Invalid CSRF token.", status=403)
+        if request.method == "POST":
+            return self.store(owner, request)
+        if request.method == "DELETE":
+            return self.remove(owner, request.get_data(as_text=True))
+        return Response(status=405, headers={"Allow": "GET, POST, DELETE"})
+
+    def store(self, owner, request):
+        upload = next(iter(request.files.values()), None)
+        # as declared by the browser: inspect the content if it matters
+        if upload is None or upload.content_type not in self.allowed:
+            return Response("File type not allowed.", status=415)
+        upload_id = secrets.token_urlsafe(16)
+        upload.save(self.folder / upload_id)
+        self.files[upload_id] = (owner, upload.filename, upload.content_type)
+        return Response(upload_id, mimetype="text/plain")
+
+    def remove(self, owner, upload_id):
+        if not self.owned(owner, upload_id):
+            return Response(status=404)
+        del self.files[upload_id]
+        (self.folder / upload_id).unlink()
+        return Response(status=204)
+
+    def restore(self, owner, upload_id):
+        if not self.owned(owner, upload_id):
+            return Response(status=404)
+        _, filename, content_type = self.files[upload_id]
+        disposition = dump_options_header("attachment", {"filename": filename})
+        return Response(
+            (self.folder / upload_id).read_bytes(), mimetype=content_type,
+            headers={"Content-Disposition": disposition,
+                     "X-Content-Type-Options": "nosniff"})
+
+    def owned(self, owner, upload_id):
+        entry = self.files.get(upload_id)
+        return entry is not None and hmac.compare_digest(entry[0], owner)
+
+    def filenames(self, request, upload_ids):
+        """The names of submitted uploads, refusing anyone else's."""
+        owner = request.cookies.get(Form.csrf_cookie, "")
+        if not all(self.owned(owner, upload_id) for upload_id in upload_ids):
+            raise BadRequest("Unknown upload.")
+        return [self.files[upload_id][1] for upload_id in upload_ids]
+
+
+uploads = Uploads()
+
+
+class UploadDemoForm(BaseModel):
+    name: str = Field(..., title="Name")
+    belege: list[str] = Field(..., title="Belege")
+    hat_attest: t.Literal["ja", "nein"] = Field("nein", title="Attest vorhanden?")
+    attest: str | None = Field(None, title="Attest")
+
+
+UPLOAD_DEMO = parse_ui({
+    "belege": {"ui:widget": "file", "ui:multiple": True,
+               "ui:accept": ["application/pdf", "image/png"],
+               "ui:help": "PDF oder PNG, höchstens 2 MB je Datei."},
+    "hat_attest": {"ui:widget": "radio"},
+    "attest": {"ui:widget": "file",
+               "ui:attributes": {"data-max-file-size": "2MB"},
+               "ui:conditions": [{"field": "hat_attest", "operator": "equals",
+                                  "value": "ja"}]},
+})
+
+
+class UploadDemo(Form):
+    theme = BOOTSTRAP
+
+    def get_schema(self, request):
+        return UploadDemoForm
+
+    def get_renderer(self, request):
+        return FormRenderer(theme=self.get_theme(request), ui=UPLOAD_DEMO,
+                            upload_url="/upload", upload_options=i18n.UPLOAD_GERMAN)
+
+    def render_response(self, html_form, request):
+        return Response(page(html_form, self.get_theme(request), title="Upload demo"),
+                        mimetype="text/html")
+
+    @trigger(name="send", title="Absenden", validate=True)
+    def send(self, request, data):
+        attest = [data.attest] if data.attest else []
+        return Response(f"{data.name}: {uploads.filenames(request, data.belege)}, "
+                        f"Attest {uploads.filenames(request, attest)}",
+                        mimetype="text/plain")
+
+
 # URL routing rules
 routes.add("/", endpoint=Index())
 routes.add("/rueckfrage", endpoint=Rueckfrage())
 routes.add("/ui-demo", endpoint=UIDemo())
+routes.add("/upload-demo", endpoint=UploadDemo())
+routes.add("/upload", endpoint=uploads)
 routes.add("/material", endpoint=MaterialIndex())
 routes.add("/custom", endpoint=Feedback())
 

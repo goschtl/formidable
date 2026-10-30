@@ -69,3 +69,37 @@ GERMAN: Catalog = {
     "date_from_datetime_parsing": "Bitte ein gültiges Datum eingeben.",
     "is_instance_of": "Ungültige Eingabe.",
 }
+
+#: German labels for the upload widget: FormRenderer(upload_options=...)
+UPLOAD_GERMAN: t.Mapping[str, str] = {
+    "labelIdle": 'Dateien ablegen oder <span class="filepond--label-action">'
+                 "auswählen</span>",
+    "labelInvalidField": "Feld beinhaltet ungültige Dateien",
+    "labelFileWaitingForSize": "Dateigröße berechnen",
+    "labelFileSizeNotAvailable": "Dateigröße nicht verfügbar",
+    "labelFileLoading": "Laden",
+    "labelFileLoadError": "Fehler beim Laden",
+    "labelFileProcessing": "Upload läuft",
+    "labelFileProcessingComplete": "Upload abgeschlossen",
+    "labelFileProcessingAborted": "Upload abgebrochen",
+    "labelFileProcessingError": "Fehler beim Upload",
+    "labelFileProcessingRevertError": "Fehler beim Wiederherstellen",
+    "labelFileRemoveError": "Fehler beim Löschen",
+    "labelTapToCancel": "abbrechen",
+    "labelTapToRetry": "erneut versuchen",
+    "labelTapToUndo": "rückgängig",
+    "labelButtonRemoveItem": "Entfernen",
+    "labelButtonAbortItemLoad": "Verwerfen",
+    "labelButtonRetryItemLoad": "Erneut versuchen",
+    "labelButtonAbortItemProcessing": "Abbrechen",
+    "labelButtonUndoItemProcessing": "Rückgängig",
+    "labelButtonRetryItemProcessing": "Erneut versuchen",
+    "labelButtonProcessItem": "Upload",
+    "labelMaxFileSizeExceeded": "Datei ist zu groß",
+    "labelMaxFileSize": "Maximale Dateigröße: {filesize}",
+    "labelMaxTotalFileSizeExceeded": "Maximale gesamte Dateigröße überschritten",
+    "labelMaxTotalFileSize": "Maximale gesamte Dateigröße: {filesize}",
+    "labelFileTypeNotAllowed": "Dateityp ungültig",
+    "fileValidateTypeLabelExpectedTypes":
+        "Erwartet {allButLastType} oder {lastType}",
+}
