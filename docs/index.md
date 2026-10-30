@@ -31,14 +31,12 @@ class Contact(Form):
 of the pressed button. If validation fails, the form comes back with the
 submitted values and an error message at each field.
 
-!!! note "Which version this describes"
-    This documentation describes the `chameleon-rs` branch, where all markup
-    lives in Chameleon templates. `main` does not have these templates, UI
-    schemas or background uploads yet.
-
 ## What's included
 
 - **[Fields and widgets](fields.md)**: every model field becomes a widget, including nested models and repeatable rows.
+- **[Multi-step forms and drafts](wizard.md)**: one model over several pages, to continue later.
+- **[Read-only views](readonly.md)**: the answers as text, for review and confirmation pages.
+- **[Accessibility](accessibility.md)**: an error summary and linked messages for screen readers.
 - **[Your own form layout](layouts.md)**: place each field yourself in a Chameleon template.
 - **[UI schemas](ui-schema.md)**: titles, help texts, units, masks and more, kept apart from the model.
 - **[Conditional fields](conditions.md)**: show and hide fields without jQuery.

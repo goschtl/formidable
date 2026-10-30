@@ -4,7 +4,7 @@ formidable needs Python 3.12 or newer. It isn't on PyPI, so install it from
 GitHub:
 
 ```bash
-uv add "formidable @ git+https://github.com/goschtl/formidable@chameleon-rs"
+uv add "formidable @ git+https://github.com/goschtl/formidable"
 ```
 
 ## A first form
@@ -66,7 +66,7 @@ what you want when your application has its own page layout.
 `ex.py` in the repository shows nearly everything in this documentation:
 
 ```bash
-git clone -b chameleon-rs https://github.com/goschtl/formidable.git
+git clone https://github.com/goschtl/formidable.git
 cd formidable
 uv run python ex.py
 ```
@@ -79,3 +79,4 @@ uv run python ex.py
 | `/rueckfrage` | A real model with a [UI schema](ui-schema.md) and [conditions](conditions.md) |
 | `/ui-demo` | Units, help texts, masks, multiple files |
 | `/upload-demo` | [Background uploads](uploads.md) with FilePond |
+| `/wizard` | [Several steps and drafts](wizard.md), with a review page |
