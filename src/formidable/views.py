@@ -8,7 +8,7 @@ from werkzeug.wrappers import Response
 
 from formidable import i18n, themes
 from formidable.data import normalize, unflatten
-from formidable.renderers import CSRF_FIELD, FormRenderer
+from formidable.renderers import CSRF_FIELD, FormRenderer, check_schema
 
 
 class Button(t.NamedTuple):
@@ -215,6 +215,7 @@ class Form:
         btn = self.buttons.get(name) if name else None
         if btn is None:
             return Response("Unknown form action.", status=400)
+        check_schema(self.get_schema(request))
         data = self.get_data(request)
         try:
             # A validating trigger receives the schema instance,

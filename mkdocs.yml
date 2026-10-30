@@ -43,6 +43,7 @@ nav:
       - Multi-step forms and drafts: wizard.md
       - Read-only views: readonly.md
       - Accessibility: accessibility.md
+      - Saving with SQLModel: sqlmodel.md
   - Layout and markup:
       - Your own form layout: layouts.md
       - Changing the markup: templates.md

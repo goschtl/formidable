@@ -37,6 +37,7 @@ submitted values and an error message at each field.
 - **[Multi-step forms and drafts](wizard.md)**: one model over several pages, to continue later.
 - **[Read-only views](readonly.md)**: the answers as text, for review and confirmation pages.
 - **[Accessibility](accessibility.md)**: an error summary and linked messages for screen readers.
+- **[Saving with SQLModel](sqlmodel.md)**: the same models for forms and database tables.
 - **[Your own form layout](layouts.md)**: place each field yourself in a Chameleon template.
 - **[UI schemas](ui-schema.md)**: titles, help texts, units, masks and more, kept apart from the model.
 - **[Conditional fields](conditions.md)**: show and hide fields without jQuery.

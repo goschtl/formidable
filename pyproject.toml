@@ -24,4 +24,5 @@ build-backend = "hatchling.build"
 dev = [
     "pdbpp>=0.10.3",
     "pytest>=8.0",
+    "sqlmodel>=0.0.22",
 ]
