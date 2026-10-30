@@ -6,10 +6,11 @@ locations, which flatten the same way.
 """
 
 import typing as t
-from pydantic import BaseModel
-from beartype.door import TypeHint
-from formidable.renderers import resolve
 
+from beartype.door import TypeHint
+from pydantic import BaseModel
+
+from formidable.renderers import resolve
 
 BOOL = TypeHint(bool)
 
@@ -48,7 +49,7 @@ def normalize(schema: type[BaseModel], data: dict) -> dict:
     validation as "missing" rather than as an unparsable empty string.
     """
     for name, model_field in schema.model_fields.items():
-        token, optional = resolve(model_field.annotation)
+        token, _optional = resolve(model_field.annotation)
         hint = token.hint
         if token == BOOL:
             if name not in data:

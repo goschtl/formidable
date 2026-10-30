@@ -4,8 +4,7 @@ import typing as t
 from markupsafe import Markup
 from pydantic import BaseModel, Field
 
-from formidable.renderers import (
-    FormRenderer, RadioFieldRenderer, StringFieldRenderer)
+from formidable.renderers import FormRenderer, RadioFieldRenderer, StringFieldRenderer
 from formidable.themes import Theme
 
 

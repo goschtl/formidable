@@ -1,3 +1,5 @@
+import typing as t
+
 from pydantic import BaseModel, Field
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request, Response
@@ -62,7 +64,7 @@ def test_site_wide_catalog_translates_form_errors():
 
 def test_view_level_catalog_overrides_site_default():
     class FrenchIndex(Index):
-        error_messages = {"missing": "Champ obligatoire."}
+        error_messages: t.ClassVar = {"missing": "Champ obligatoire."}
 
     previous = i18n.use(i18n.GERMAN)
     try:

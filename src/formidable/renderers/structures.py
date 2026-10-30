@@ -1,11 +1,11 @@
 """Structural widgets: nested models and repeatable list rows."""
 
 import typing as t
+
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from formidable.renderers.base import (
-    IFieldRenderer, default_value, field_title)
 
+from formidable.renderers.base import IFieldRenderer, default_value, field_title
 
 INDEX_PLACEHOLDER = "__index__"
 NUM_PLACEHOLDER = "__num__"

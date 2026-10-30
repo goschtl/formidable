@@ -1,6 +1,5 @@
 import json
 import typing as t
-
 from io import BytesIO
 
 from pydantic import BaseModel, Field

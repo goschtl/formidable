@@ -4,16 +4,17 @@ import enum
 import typing as t
 from functools import lru_cache
 from pathlib import Path
+
+from beartype.door import TypeHint, UnionTypeHint
 from chameleon_rs import PageTemplateLoader
 from chameleon_rs.template import HTML5_BOOLEAN_ATTRIBUTES
 from markupsafe import Markup
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
-from beartype.door import TypeHint, UnionTypeHint
-from formidable import i18n
-from formidable.themes import Theme, DEFAULT
-from formidable.ui import NO_UI, UIField
 
+from formidable import i18n
+from formidable.themes import DEFAULT, Theme
+from formidable.ui import NO_UI, UIField
 
 OPTIONAL = TypeHint(None)
 

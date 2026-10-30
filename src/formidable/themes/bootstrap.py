@@ -4,7 +4,6 @@ from pathlib import Path
 
 from formidable.themes import Theme
 
-
 BOOTSTRAP = Theme(
     wrapper="mb-3",
     label="form-label",

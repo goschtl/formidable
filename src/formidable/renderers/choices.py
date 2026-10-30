@@ -8,6 +8,7 @@ an unknown option.
 
 import enum
 import typing as t
+
 from formidable.renderers.base import IFieldRenderer, classes, field_title
 
 

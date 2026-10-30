@@ -1,8 +1,7 @@
+from beartype.door import TypeHint
 from pydantic import BaseModel, Field
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
-
-from beartype.door import TypeHint
 
 from formidable.renderers import FormRenderer, StringFieldRenderer
 from formidable.themes import Theme, page
@@ -142,7 +141,7 @@ def test_material_marks_errors():
 
 
 def test_site_wide_theme_registration():
-    import formidable.themes as themes
+    from formidable import themes
 
     previous = themes.use(BOOTSTRAP)
     try:
@@ -170,7 +169,7 @@ def test_site_wide_theme_registration():
 
 
 def test_use_returns_previous_theme():
-    import formidable.themes as themes
+    from formidable import themes
 
     previous = themes.use(BOOTSTRAP)
     assert themes.current() is BOOTSTRAP

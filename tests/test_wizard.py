@@ -283,8 +283,8 @@ def test_answers_carried_along_do_not_overwrite(browser):
 def test_draft_is_saved_for_later(browser):
     response = browser.press("save_draft", name="Ann")
     assert response.headers["Location"] == "?step=person&saved=1"
-    cookie = [h for h in response.headers.getlist("Set-Cookie")
-              if h.startswith("formidable-draft=")][0]
+    cookie = next(h for h in response.headers.getlist("Set-Cookie")
+                  if h.startswith("formidable-draft="))
     assert "HttpOnly" in cookie and "SameSite=Lax" in cookie
     assert "Max-Age" in cookie
     html = browser.get("/?step=person&saved=1").text
@@ -294,8 +294,8 @@ def test_draft_is_saved_for_later(browser):
 
 def test_cookie_ends_with_the_browser_unless_saved_on_purpose(browser):
     response = browser.get()
-    cookie = [h for h in response.headers.getlist("Set-Cookie")
-              if h.startswith("formidable-draft=")][0]
+    cookie = next(h for h in response.headers.getlist("Set-Cookie")
+                  if h.startswith("formidable-draft="))
     assert "Max-Age" not in cookie
 
 
