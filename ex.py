@@ -7,6 +7,7 @@ import typing as t
 from pathlib import Path
 
 from autoroutes import Routes as Autoroutes
+from markupsafe import escape
 from pydantic import BaseModel, Field, create_model, model_validator
 from pydantic_core import PydanticCustomError
 from werkzeug.exceptions import BadRequest, HTTPException
@@ -435,7 +436,82 @@ class UnfallMeldung(Wizard):
             f"<h1>Vielen Dank</h1><p>Wir haben erhalten:</p>{confirmation}", request)
 
 
+# --- Submitting without a page reload, with htmx ---
+#
+# The form stays as it is. hx-boost around it sends the submit by XHR and
+# swaps the answer in; without JavaScript it is a plain POST and full page.
+
+HTMX_PAGE = """
+<div hx-boost="true" hx-target="this" hx-swap="innerHTML" hx-push-url="false">
+{content}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+<script>
+  // the delegated listeners survive a swap; conditions must look again
+  document.addEventListener("htmx:afterSettle", function () {{
+    document.dispatchEvent(new CustomEvent("formidable:rows"));
+  }});
+</script>
+"""
+
+
+class HtmxZeuge(BaseModel):
+    name: str = Field(..., title="Name")
+
+
+class HtmxForm(BaseModel):
+    name: str = Field(..., title="Name")
+    alter: int = Field(..., title="Alter", ge=18)
+    verletzt: t.Literal["ja", "nein"] = Field(..., title="Wurden Sie verletzt?")
+    verletzung: str | None = Field(None, title="Welche Verletzung?")
+    zeugen: list[HtmxZeuge] = Field(default_factory=list, title="Zeugen")
+
+    @model_validator(mode="after")
+    def verletzung_angeben(self):
+        if self.verletzt == "ja" and not self.verletzung:
+            raise PydanticCustomError(
+                "missing", "Pflichtfeld.", {"field": "verletzung"})
+        return self
+
+
+HTMX_UI = parse_ui({
+    "verletzt": {"ui:widget": "radio"},
+    "verletzung": {"ui:conditions": [{"field": "verletzt", "operator": "equals",
+                                      "value": "ja"}]},
+})
+
+
+class HtmxDemo(Form):
+    theme = BOOTSTRAP
+
+    def get_schema(self, request):
+        return HtmxForm
+
+    def get_renderer(self, request):
+        return FormRenderer(theme=self.get_theme(request), ui=HTMX_UI)
+
+    def render_response(self, html_form, request):
+        """htmx asks for the fragment, everybody else gets the whole page."""
+        if request.headers.get("HX-Request"):
+            content = str(html_form)
+        else:
+            content = page(HTMX_PAGE.format(content=html_form),
+                           self.get_theme(request), title="htmx", lang="de")
+        response = Response(content, mimetype="text/html")
+        # one URL, two answers: the back button must not bring up a fragment
+        response.vary.add("HX-Request")
+        return response
+
+    @trigger(name="send", title="Absenden", validate=True)
+    def send(self, request, data):
+        summary = self.get_readonly(request, data)
+        return self.render_response(
+            f'<h1>Danke, {escape(data.name)}!</h1>{summary}'
+            '<p><a href="/htmx">Noch eine Meldung</a></p>', request)
+
+
 # URL routing rules
+routes.add("/htmx", endpoint=HtmxDemo())
 routes.add("/", endpoint=Index())
 routes.add("/rueckfrage", endpoint=Rueckfrage())
 routes.add("/ui-demo", endpoint=UIDemo())
