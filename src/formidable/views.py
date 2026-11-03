@@ -9,6 +9,7 @@ from werkzeug.wrappers import Response
 from formidable import i18n, themes
 from formidable.data import normalize, unflatten
 from formidable.renderers import CSRF_FIELD, FormRenderer, check_schema
+from fct_annotate import annotation
 
 
 class Button(t.NamedTuple):
@@ -19,46 +20,23 @@ class Button(t.NamedTuple):
     validate: bool
 
 
-class annotation:
-    name: t.ClassVar[str] = "__annotations__"
-
-    def __init__(self, **values):
-        self.annotation = values
-
-    @staticmethod
-    def discriminator(component) -> Exception | None:
-        if not isroutine(component):
-            return TypeError(f"{component!r} is not a routine.")
-        if component.__name__.startswith("_"):
-            return NameError(f"{component!r} has a private name.")
-        return None
+@annotation('form_button')
+class trigger:
+    """Form Trigger, defining form actions to use as deform buttons.
+    """
+    name: str
+    title: str
+    validate: bool = False
+    order: int = 0
 
     @classmethod
-    def predicate(cls, component):
-        return cls.discriminator(component) is None
-
-    @classmethod
-    def find(cls, obj_or_module):
-        members = getmembers(obj_or_module, predicate=cls.predicate)
-        for name, func in members:
-            canonical = unwrap(func)
-            if annotations := getattr(canonical, cls.name, False):
-                yield annotations, func
-
-    def __call__(self, func):
-        canonical = unwrap(func)
-        if error := self.discriminator(canonical):
-            raise error
-        setattr(canonical, self.name, self.annotation)
-        return func
-
-
-class trigger(annotation):
-    name = "__form_trigger__"
-
-    def __init__(self, name: str, title: str,
-                 order: int = 0, validate: bool = False):
-        super().__init__(name=name, title=title, order=order, validate=validate)
+    def find(cls, component):
+        """Find decorated methods ordered by `order`.
+        """
+        return sorted(
+            tuple(super().find(component)),
+            key=lambda x: (x[0]["order"], x[0]["name"])
+        )
 
 
 class Form:
@@ -74,10 +52,7 @@ class Form:
     csrf_cookie: t.ClassVar[str] = "formidable-csrf"
 
     def __init__(self):
-        triggers = sorted(
-            trigger.find(self),
-            key=lambda x: (x[0]["order"], x[0]["name"])
-        )
+        triggers = trigger.find(self)
         self.buttons = {
             ann["name"]: Button(
                 type=self.button_name,
