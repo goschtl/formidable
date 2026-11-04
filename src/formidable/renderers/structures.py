@@ -6,11 +6,16 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from formidable.renderers.base import IFieldRenderer, default_value, field_title
+from html_resources.resources import InlineJSResource
+
 
 INDEX_PLACEHOLDER = "__index__"
 NUM_PLACEHOLDER = "__num__"
 
-LIST_SCRIPT = """
+
+list_script = InlineJSResource(
+    bottom=True,
+    code="""
 (function () {
   if (window.__formidable_rows) return;
   window.__formidable_rows = true;
@@ -40,7 +45,7 @@ LIST_SCRIPT = """
     // no reindexing needed: the server accepts sparse indices
   });
 })();
-"""
+""")
 
 
 class ModelFieldRenderer(IFieldRenderer):

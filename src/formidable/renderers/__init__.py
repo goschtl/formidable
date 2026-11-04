@@ -11,14 +11,17 @@ Everything public is re-exported here; import from
 """
 
 from formidable.renderers.base import (
-    CONDITIONS_SCRIPT,
+    conditions,
+    mask,
+    filepond_css,
+    filepond_js,
+    filepond_type_plugin,
+    filepond_size_plugin,
+    upload_js,
     CSRF_FIELD,
-    MASK_SCRIPT,
     OPTIONAL,
     TEMPLATES,
     TRUTHY,
-    UPLOAD_SCRIPTS,
-    UPLOAD_STYLE,
     IFieldRenderer,
     check_schema,
     classes,
@@ -59,7 +62,7 @@ from formidable.renderers.inputs import (
 )
 from formidable.renderers.structures import (
     INDEX_PLACEHOLDER,
-    LIST_SCRIPT,
+    list_script,
     NUM_PLACEHOLDER,
     ListFieldRenderer,
     ModelFieldRenderer,
@@ -70,7 +73,7 @@ __all__ = [
     "CONDITIONS_SCRIPT",
     "CSRF_FIELD",
     "INDEX_PLACEHOLDER",
-    "LIST_SCRIPT",
+    "list_script",
     "MASK_SCRIPT",
     "NAMED_WIDGETS",
     "NUM_PLACEHOLDER",

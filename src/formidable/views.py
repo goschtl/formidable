@@ -2,6 +2,7 @@ import hmac
 import secrets
 import typing as t
 from inspect import getmembers, isroutine, unwrap
+from pathlib import PurePosixPath
 
 from pydantic import BaseModel, ValidationError
 from werkzeug.wrappers import Response
@@ -10,6 +11,35 @@ from formidable import i18n, themes
 from formidable.data import normalize, unflatten
 from formidable.renderers import CSRF_FIELD, FormRenderer, check_schema
 from fct_annotate import annotation
+from html_resources.resources import Resource
+from html_resources.needed import NeededResources
+
+
+class BoundResources(NeededResources):
+
+    def __init__(self, path: str | PurePosixPath, *args, **kwargs):
+        self.path = PurePosixPath(path)
+        super().__init__(*args, **kwargs)
+
+    def apply(self, body: str | bytes, base_uri: str = "") -> bytes:
+        if len(self.data) == 0:
+            return body
+
+        if isinstance(body, str):
+            body = body.encode()
+
+        top = b""
+        bottom = b""
+        for resource in self.unfold():
+            if resource.bottom:
+                bottom += resource.render(base_uri / self.path)
+            else:
+                top += resource.render(base_uri / self.path)
+        if top:
+            body = body.replace(b"</head>", top + b"</head>", 1)
+        if bottom:
+            body = body.replace(b"</body>", bottom + b"</body>", 1)
+        return body
 
 
 class Button(t.NamedTuple):
@@ -63,6 +93,7 @@ class Form:
             )
             for ann, func in triggers
         }
+        self.resources = BoundResources("/")
 
     def get_schema(self, request) -> type[BaseModel]:
         raise NotImplementedError()
@@ -83,7 +114,11 @@ class Form:
         return i18n.current()
 
     def get_renderer(self, request):
-        return FormRenderer(theme=self.get_theme(request))
+        resources = NeededResources()
+        return FormRenderer(
+            theme=self.get_theme(request),
+            resources=resources
+        )
 
     def get_fields(self, request) -> t.Collection[str] | None:
         """The top-level fields to show; None for all of them."""

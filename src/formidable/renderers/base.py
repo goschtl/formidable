@@ -16,6 +16,9 @@ from pydantic_core import PydanticUndefined
 from formidable import i18n
 from formidable.themes import DEFAULT, Theme
 from formidable.ui import NO_UI, UIField
+from html_resources.library import Library
+
+
 
 OPTIONAL = TypeHint(None)
 
@@ -25,17 +28,17 @@ CSRF_FIELD = "__csrf__"
 
 TEMPLATES = Path(__file__).parent.parent / "templates"
 
+
 STATIC = Path(__file__).parent.parent / "static"
-CONDITIONS_SCRIPT = (STATIC / "conditions.js").read_text(encoding="utf-8")
-MASK_SCRIPT = (STATIC / "mask.js").read_text(encoding="utf-8")
-UPLOAD_SCRIPTS = tuple(
-    (STATIC / path).read_text(encoding="utf-8") for path in (
-        "filepond/filepond.min.js",
-        "filepond/filepond-plugin-file-validate-type.min.js",
-        "filepond/filepond-plugin-file-validate-size.min.js",
-        "upload.js",
-    ))
-UPLOAD_STYLE = (STATIC / "filepond/filepond.min.css").read_text(encoding="utf-8")
+static = Library.from_discovery('static', STATIC)
+
+conditions = static.bind("conditions.js")
+mask = static.bind("mask.js")
+filepond_css = static.bind("filepond/filepond.min.css")
+filepond_js = static.bind("filepond/filepond.min.js", dependencies=[filepond_css])
+filepond_type_plugin = static.bind("filepond/filepond-plugin-file-validate-type.min.js", dependencies=[filepond_js])
+filepond_size_plugin = static.bind("filepond/filepond-plugin-file-validate-size.min.js", dependencies=[filepond_js])
+upload_js = static.bind("upload.js", dependencies=[filepond_type_plugin, filepond_size_plugin])
 
 
 def classes(*parts: str) -> str | None:

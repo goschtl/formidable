@@ -12,15 +12,15 @@ from markupsafe import Markup
 from pydantic import BaseModel, SecretStr
 from pydantic.fields import FieldInfo
 from werkzeug.datastructures import FileStorage
+from html_resources.needed import NeededResources
 
 from formidable import i18n
 from formidable.conditions import is_visible
 from formidable.renderers.base import (
-    CONDITIONS_SCRIPT,
+    conditions,
+    upload_js,
+    mask,
     CSRF_FIELD,
-    MASK_SCRIPT,
-    UPLOAD_SCRIPTS,
-    UPLOAD_STYLE,
     IFieldRenderer,
     check_schema,
     field_title,
@@ -50,7 +50,7 @@ from formidable.renderers.inputs import (
     TimeFieldRenderer,
 )
 from formidable.renderers.structures import (
-    LIST_SCRIPT,
+    list_script,
     ListFieldRenderer,
     ModelFieldRenderer,
 )
@@ -105,6 +105,7 @@ def as_values(values: t.Any) -> dict[str, t.Any]:
 class FormRenderer:
 
     def __init__(self,
+                 resources: NeededResources | None = None,
                  widgets: dict[TypeHint, type[IFieldRenderer]] | None = None,
                  custom_widgets: dict[str, type[IFieldRenderer]] | None = None,
                  theme: Theme | None = None,
@@ -140,6 +141,9 @@ class FormRenderer:
         self.readonly = False
         self.values: t.Any = {}  # what the conditions of read-only fields see
         self.titles: dict[str, str] = {}
+        if resources is None:
+            resources = NeededResources()
+        self.resources = resources
 
     def dispatch(self, name: str, token: TypeHint,
                  model_field: FieldInfo | None = None,
@@ -225,23 +229,18 @@ class FormRenderer:
         """The scripts this form needs, or None."""
         if self.readonly:
             return None
-        scripts = []
+
         if self.needs_script:
-            scripts.append(LIST_SCRIPT)
+            self.resources.add(list_script)
+
         if any(ui.needs_conditions_script for ui in self.ui.values()):
-            scripts.append(CONDITIONS_SCRIPT)
+            self.resources.add(conditions)
+
         if any(ui.active_mask for ui in self.ui.values()):
-            scripts.append(MASK_SCRIPT)
+            self.resources.add(mask)
+
         if self.needs_uploads:
-            scripts.extend(UPLOAD_SCRIPTS)
-        if not scripts:
-            return None
-        parts = [self.render_template("formidable/script.pt", code=code)
-                 for code in scripts]
-        if self.needs_uploads:
-            parts.insert(0, self.render_template(
-                "formidable/style.pt", code=UPLOAD_STYLE))
-        return Markup("\n").join(parts)
+            self.resources.add(upload_js)
 
     def bind(self,
              model_cls: type[BaseModel],

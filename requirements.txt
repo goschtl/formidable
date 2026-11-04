@@ -1,0 +1,2 @@
+-e git+https://github.com/WolfSGI/html_resources.git@inline_resources#egg=html_resources
+-e .[test]

@@ -27,7 +27,7 @@ from formidable.themes import page
 from formidable.themes.bootstrap import BOOTSTRAP
 from formidable.themes.material import MATERIAL
 from formidable.ui import load_ui, parse_ui
-from formidable.views import Form, trigger
+from formidable.views import Form, trigger, BoundResources
 from formidable.wizard import FileDraftStore, Step, Wizard
 
 themes.use(MATERIAL)  # the site-wide default
@@ -99,6 +99,7 @@ def available_flavors(request) -> tuple[str, ...]:
 
 
 class Index(Form):
+
     def get_schema(self, request):
         # deform's "deferred" pattern: bind the schema to the request.
         # Validation then only accepts exactly these choices.
@@ -111,6 +112,7 @@ class Index(Form):
 
     def get_renderer(self, request):
         return FormRenderer(
+            resources=self.resources,
             theme=self.get_theme(request),
             templates=[Path(__file__).parent / "ex_templates"],
             custom_widgets={
@@ -121,10 +123,13 @@ class Index(Form):
         )
 
     def render_response(self, html_form, request):
-        return Response(
-            page(html_form, self.get_theme(request), title="formidable demo"),
-            mimetype="text/html",
+        html = page(
+            html_form,
+            self.get_theme(request),
+            title="formidable demo"
         )
+        injected = self.resources.apply(html)
+        return Response(injected, mimetype="text/html")
 
     @trigger(name="save", title="Save", validate=True)
     def save(self, request, data):
@@ -349,12 +354,22 @@ class UploadDemo(Form):
         return UploadDemoForm
 
     def get_renderer(self, request):
-        return FormRenderer(theme=self.get_theme(request), ui=UPLOAD_DEMO,
-                            upload_url="/upload", upload_options=i18n.UPLOAD_GERMAN)
+        return FormRenderer(
+            resources=self.resources,
+            theme=self.get_theme(request),
+            ui=UPLOAD_DEMO,
+            upload_url="/upload",
+            upload_options=i18n.UPLOAD_GERMAN
+        )
 
     def render_response(self, html_form, request):
-        return Response(page(html_form, self.get_theme(request), title="Upload demo"),
-                        mimetype="text/html")
+        html = page(
+            html_form,
+            self.get_theme(request),
+            title="Upload demo"
+        )
+        injected = self.resources.apply(html)
+        return Response(injected, mimetype="text/html")
 
     @trigger(name="send", title="Absenden", validate=True)
     def send(self, request, data):
