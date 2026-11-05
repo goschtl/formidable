@@ -21,7 +21,12 @@ class BoundResources(NeededResources):
         self.path = PurePosixPath(path)
         super().__init__(*args, **kwargs)
 
-    def apply(self, body: str | bytes, base_uri: str = "") -> bytes:
+    def apply(
+            self,
+            body: str | bytes,
+            base_uri: str = "",
+            force_inline: bool = False
+    ) -> bytes:
         if len(self.data) == 0:
             return body
 
@@ -31,6 +36,9 @@ class BoundResources(NeededResources):
         top = b""
         bottom = b""
         for resource in self.unfold():
+            if isinstance(resource, Resource) and force_inline:
+                resource = resource.inline
+
             if resource.bottom:
                 bottom += resource.render(base_uri / self.path)
             else:

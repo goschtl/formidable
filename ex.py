@@ -368,7 +368,7 @@ class UploadDemo(Form):
             self.get_theme(request),
             title="Upload demo"
         )
-        injected = self.resources.apply(html)
+        injected = self.resources.apply(html, force_inline=True)
         return Response(injected, mimetype="text/html")
 
     @trigger(name="send", title="Absenden", validate=True)
